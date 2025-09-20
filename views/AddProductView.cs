@@ -1,8 +1,5 @@
 using static UiComponents;
 
-/// <summary>
-/// Vista para agregar un nuevo producto. Implementa el sistema de foco.
-/// </summary>
 public class AddProductView : IView
 {
     private readonly InventoryManager _inventoryManager;
@@ -35,7 +32,7 @@ public class AddProductView : IView
         DrawNumericFormField(contentX, 17, _fieldLabels[4], _newProduct.MinQuantity, _focusState == FocusState.Content && _currentFieldIndex == 4 && !_isEditing);
         DrawFormField(contentX, 19, _fieldLabels[5], _newProduct.Description, _focusState == FocusState.Content && _currentFieldIndex == 5 && !_isEditing);
         DrawNumericFormField(contentX, 21, _fieldLabels[6], _newProduct.Price, _focusState == FocusState.Content && _currentFieldIndex == 6 && !_isEditing, true);
-        string buttons = "[Enter/Tab] Editar | [↑/↓] Navegar | [Space]+[G] Guardar | [ESC] Menú";
+        string buttons = "[Enter/Tab] Editar | [↑/↓] Navegar | [Space]+[G] Guardar | [ESC/←] Menú";
         Console.SetCursorPosition(contentX, 25);
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.Write(buttons);
@@ -53,7 +50,8 @@ public class AddProductView : IView
                 if (nextView is AddProductView) { _focusState = FocusState.Content; return this; }
                 return nextView;
             }
-            NavigationHelper.HandleMenuNavigation(key, ref _navigationIndex, _inventoryManager);
+            // CORRECCIÓN (CS1501): Se elimina el tercer argumento 'manager'.
+            NavigationHelper.HandleMenuNavigation(key, ref _navigationIndex);
             return this;
         }
 

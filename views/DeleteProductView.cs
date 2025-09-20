@@ -1,8 +1,5 @@
 using static UiComponents;
 
-/// <summary>
-/// Vista para eliminar productos del inventario. Implementa el sistema de foco.
-/// </summary>
 public class DeleteProductView : IView
 {
     private readonly InventoryManager _inventoryManager;
@@ -55,7 +52,8 @@ public class DeleteProductView : IView
                 if (nextView is DeleteProductView) { _focusState = FocusState.Content; return this; }
                 return nextView;
             }
-            NavigationHelper.HandleMenuNavigation(key, ref _navigationIndex, _inventoryManager);
+            // CORRECCIÓN (CS1501): Se elimina el tercer argumento 'manager'.
+            NavigationHelper.HandleMenuNavigation(key, ref _navigationIndex);
             return this;
         }
 

@@ -1,8 +1,5 @@
 using static UiComponents;
 
-/// <summary>
-/// Vista estática "Acerca de". Implementa el sistema de foco.
-/// </summary>
 public class AboutView : IView
 {
     private readonly InventoryManager _inventoryManager;
@@ -47,7 +44,8 @@ public class AboutView : IView
                 if (nextView is AboutView) { _focusState = FocusState.Content; return this; }
                 return nextView;
             }
-            NavigationHelper.HandleMenuNavigation(key, ref _navigationIndex, _inventoryManager);
+            // CORRECCIÓN (CS1501): Se elimina el tercer argumento 'manager'.
+            NavigationHelper.HandleMenuNavigation(key, ref _navigationIndex);
             return this;
         }
 
@@ -55,7 +53,7 @@ public class AboutView : IView
         {
             _focusState = FocusState.Navigation;
         }
-        return this; // El contenido no es interactivo, no hace nada más
+        return this;
     }
 }
 

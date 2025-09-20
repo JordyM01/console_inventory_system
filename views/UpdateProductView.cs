@@ -1,8 +1,5 @@
 using static UiComponents;
 
-/// <summary>
-/// Vista para actualizar la cantidad de productos. Implementa el sistema de foco.
-/// </summary>
 public class UpdateProductView : IView
 {
     private readonly InventoryManager _inventoryManager;
@@ -57,7 +54,8 @@ public class UpdateProductView : IView
                 if (nextView is UpdateProductView) { _focusState = FocusState.Content; return this; }
                 return nextView;
             }
-            NavigationHelper.HandleMenuNavigation(key, ref _navigationIndex, _inventoryManager);
+            // CORRECCIÓN (CS1501): Se elimina el tercer argumento 'manager'.
+            NavigationHelper.HandleMenuNavigation(key, ref _navigationIndex);
             return this;
         }
 

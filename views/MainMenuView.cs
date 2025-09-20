@@ -50,7 +50,7 @@ public class MainMenuView : IView
         {
             case ConsoleKey.UpArrow: _navigationIndex = (_navigationIndex > 1) ? _navigationIndex - 1 : numItems; break;
             case ConsoleKey.DownArrow: _navigationIndex = (_navigationIndex < numItems) ? _navigationIndex + 1 : 1; break;
-            case ConsoleKey.RightArrow: if (_navigationIndex <= 3) _navigationIndex += 3; break;
+            case ConsoleKey.RightArrow: if (_navigationIndex <= 3 && numItems >= _navigationIndex + 3) _navigationIndex += 3; break;
             case ConsoleKey.LeftArrow: if (_navigationIndex > 3) _navigationIndex -= 3; break;
 
             case ConsoleKey.Enter:

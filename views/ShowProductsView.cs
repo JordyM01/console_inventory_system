@@ -1,8 +1,5 @@
 using static UiComponents;
 
-/// <summary>
-/// Vista para buscar y mostrar productos. Implementa el sistema de foco.
-/// </summary>
 public class ShowProductsView : IView
 {
     private readonly InventoryManager _inventoryManager;
@@ -91,7 +88,8 @@ public class ShowProductsView : IView
                 if (nextView is ShowProductsView) { _focusState = FocusState.Content; return this; }
                 return nextView;
             }
-            NavigationHelper.HandleMenuNavigation(key, ref _navigationIndex, _inventoryManager);
+            // CORRECCIÓN (CS1501): Se elimina el tercer argumento 'manager'.
+            NavigationHelper.HandleMenuNavigation(key, ref _navigationIndex);
             return this;
         }
 
