@@ -1,5 +1,8 @@
 using static UiComponents;
 
+/// <summary>
+/// Vista para buscar y mostrar productos. Implementa el sistema de foco.
+/// </summary>
 public class ShowProductsView : IView
 {
     private readonly InventoryManager _inventoryManager;
@@ -7,6 +10,8 @@ public class ShowProductsView : IView
     private List<Product> _filteredProducts;
     private int _selectedIndex = -1;
     private int _scrollTop = 0;
+    private FocusState _focusState = FocusState.Content;
+    private int _navigationIndex = 2;
 
     public ShowProductsView(InventoryManager manager)
     {
@@ -15,18 +20,11 @@ public class ShowProductsView : IView
         _searchField = new TextField(27, 6, Console.WindowWidth - 27 - 3);
     }
 
-    private void UpdateFilteredList()
-    {
-        _filteredProducts = _inventoryManager.SearchProducts(_searchField.Text).ToList();
-        _selectedIndex = -1;
-        _scrollTop = 0;
-    }
-
     public void Draw()
     {
-        DrawLayout("Mostrar productos");
+        DrawLayout("Mostrar productos", _focusState);
+        Console.CursorVisible = _focusState == FocusState.Content;
         int contentX = 27, contentY = 3;
-
         Console.SetCursorPosition(contentX, contentY);
         Console.Write("/ Buscar producto");
 
@@ -34,7 +32,6 @@ public class ShowProductsView : IView
         int tableHeight = Console.WindowHeight - tableY - 2;
         int availableRows = tableHeight - 4;
 
-        // Limpia el área de mensaje de error en cada redibujado
         Console.SetCursorPosition(contentX, tableY - 2);
         Console.Write(new string(' ', Console.WindowWidth - contentX - 2));
 
@@ -61,71 +58,65 @@ public class ShowProductsView : IView
             {
                 int productIndex = _scrollTop + i;
                 int currentLineY = tableY + 3 + i;
-
                 Console.SetCursorPosition(contentX + 2, currentLineY);
                 Console.Write(new string(' ', Console.WindowWidth - contentX - 4));
-
                 if (productIndex >= _filteredProducts.Count) continue;
-
                 var product = _filteredProducts[productIndex];
                 Console.SetCursorPosition(contentX + 2, currentLineY);
-
-                if (productIndex == _selectedIndex)
+                if (productIndex == _selectedIndex && _focusState == FocusState.Content)
                 {
                     Console.BackgroundColor = ConsoleColor.Gray;
                     Console.ForegroundColor = ConsoleColor.Black;
                 }
-
                 string name = product.Name.PadRight(Console.WindowWidth - contentX - 30);
                 string sku = product.Sku.PadRight(15);
                 string qty = product.Quantity.ToString();
-
                 int nameWidth = Console.WindowWidth - contentX - 35;
                 Console.Write(name.Substring(0, Math.Min(name.Length, nameWidth)));
                 Console.Write(sku.Substring(0, Math.Min(sku.Length, 15)));
                 Console.Write(qty);
-
                 Console.ResetColor();
             }
         }
-
-        // --- CORRECCIÓN CLAVE ---
-        // Se mueve el dibujado del campo de búsqueda al FINAL del método Draw().
-        // Esto asegura que el cursor se posicione correctamente DESPUÉS de que todo lo demás
-        // (incluida la tabla) haya sido dibujado.
         _searchField.Draw();
-        Console.CursorVisible = true;
     }
 
     public IView HandleInput(ConsoleKeyInfo key)
     {
+        if (_focusState == FocusState.Navigation)
+        {
+            if (key.Key is ConsoleKey.Enter or ConsoleKey.RightArrow)
+            {
+                var nextView = NavigationHelper.GetViewByIndex(_navigationIndex, _inventoryManager);
+                if (nextView is ShowProductsView) { _focusState = FocusState.Content; return this; }
+                return nextView;
+            }
+            NavigationHelper.HandleMenuNavigation(key, ref _navigationIndex, _inventoryManager);
+            return this;
+        }
+
+        if (key.Key is ConsoleKey.Escape or ConsoleKey.LeftArrow) { _focusState = FocusState.Navigation; return this; }
+
         if (_searchField.HandleKey(key))
         {
-            UpdateFilteredList();
+            _filteredProducts = _inventoryManager.SearchProducts(_searchField.Text).ToList();
+            _selectedIndex = -1; _scrollTop = 0;
             return this;
         }
 
         int availableRows = Console.WindowHeight - 11 - 6;
-        switch (key.Key)
+        if (key.Key == ConsoleKey.UpArrow && _filteredProducts.Any())
         {
-            case ConsoleKey.UpArrow:
-                if (_filteredProducts.Any())
-                {
-                    _selectedIndex = _selectedIndex == -1 ? _filteredProducts.Count - 1 : Math.Max(0, _selectedIndex - 1);
-                    if (_selectedIndex < _scrollTop) _scrollTop = _selectedIndex;
-                }
-                break;
-            case ConsoleKey.DownArrow:
-                if (_filteredProducts.Any())
-                {
-                    _selectedIndex = _selectedIndex == -1 ? 0 : Math.Min(_filteredProducts.Count - 1, _selectedIndex + 1);
-                    if (_selectedIndex >= _scrollTop + availableRows) _scrollTop = _selectedIndex - availableRows + 1;
-                }
-                break;
-            case ConsoleKey.Escape:
-                Console.CursorVisible = false;
-                return new MainMenuView(_inventoryManager);
+            _selectedIndex = _selectedIndex == -1 ? _filteredProducts.Count - 1 : Math.Max(0, _selectedIndex - 1);
+            if (_selectedIndex < _scrollTop) _scrollTop = _selectedIndex;
+        }
+        if (key.Key == ConsoleKey.DownArrow && _filteredProducts.Any())
+        {
+            _selectedIndex = _selectedIndex == -1 ? 0 : Math.Min(_filteredProducts.Count - 1, _selectedIndex + 1);
+            if (_selectedIndex >= _scrollTop + availableRows) _scrollTop = _selectedIndex - availableRows + 1;
         }
         return this;
     }
 }
+
+

@@ -1,7 +1,13 @@
+// FilePath: InventoryManager.cs
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 
+/// <summary>
+/// Capa de lógica de negocio.
+/// Gestiona todas las operaciones de los productos (CRUD) y la persistencia de datos en un archivo binario.
+/// No tiene conocimiento de la interfaz de usuario.
+/// </summary>
 public class InventoryManager
 {
     private readonly string _filePath;
@@ -14,35 +20,35 @@ public class InventoryManager
         LoadFromFile();
     }
 
+    /// <summary>
+    /// Proporciona acceso de solo lectura a la lista de productos para las vistas.
+    /// </summary>
     public IReadOnlyList<Product> Products => _products.AsReadOnly();
 
-    // --- NUEVO MÉTODO DE BÚSQUEDA ---
     /// <summary>
-    /// Filtra la lista de productos basada en un término de búsqueda.
-    /// Busca coincidencias en el Nombre y SKU del producto.
+    /// Filtra la lista de productos por Nombre o SKU (sin distinguir mayúsculas/minúsculas).
     /// </summary>
-    /// <param name="searchTerm">El texto a buscar.</param>
-    /// <returns>Una lista de productos que coinciden con el término.</returns>
     public IEnumerable<Product> SearchProducts(string searchTerm)
     {
-        if (string.IsNullOrWhiteSpace(searchTerm))
-        {
-            return _products; // Si la búsqueda está vacía, devuelve todos los productos
-        }
-
-        // Búsqueda case-insensitive
+        if (string.IsNullOrWhiteSpace(searchTerm)) return _products;
         return _products.Where(p =>
             p.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
             p.Sku.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
         );
     }
 
+    /// <summary>
+    /// Agrega un nuevo producto a la lista y guarda en el archivo.
+    /// </summary>
     public void AddProduct(Product product)
     {
         _products.Add(product);
         SaveToFile();
     }
 
+    /// <summary>
+    /// Actualiza la cantidad de un producto específico y guarda en el archivo.
+    /// </summary>
     public void UpdateProductQuantity(string productId, int change)
     {
         var productIndex = _products.FindIndex(p => p.Id == productId);
@@ -55,16 +61,18 @@ public class InventoryManager
         }
     }
 
+    /// <summary>
+    /// Elimina un producto por su ID y guarda en el archivo.
+    /// </summary>
     public void DeleteProduct(string productId)
     {
-        var product = _products.FirstOrDefault(p => p.Id == productId);
-        if (product != null)
-        {
-            _products.Remove(product);
-            SaveToFile();
-        }
+        _products.RemoveAll(p => p.Id == productId);
+        SaveToFile();
     }
 
+    /// <summary>
+    /// Carga la lista de productos desde un archivo binario.
+    /// </summary>
     private void LoadFromFile()
     {
         if (!File.Exists(_filePath)) return;
@@ -81,9 +89,12 @@ public class InventoryManager
                 ));
             }
         }
-        catch (IOException e) { Console.WriteLine($"Error al cargar: {e.Message}"); }
+        catch (IOException e) { Console.WriteLine($"Error al cargar el inventario: {e.Message}"); }
     }
 
+    /// <summary>
+    /// Guarda la lista completa de productos en un archivo binario.
+    /// </summary>
     private void SaveToFile()
     {
         try
@@ -97,10 +108,7 @@ public class InventoryManager
                 writer.Write(p.Description); writer.Write(p.Price);
             }
         }
-        catch (IOException e) { Console.WriteLine($"Error al guardar: {e.Message}"); }
+        catch (IOException e) { Console.WriteLine($"Error al guardar el inventario: {e.Message}"); }
     }
 }
-
-
-
 

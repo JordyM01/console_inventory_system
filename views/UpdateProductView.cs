@@ -1,29 +1,26 @@
-using static UiComponents; // Corregido: Uiomponents -> UiComponents
+using static UiComponents;
 
-// --- Vista para Actualizar la Cantidad de Productos ---
+/// <summary>
+/// Vista para actualizar la cantidad de productos. Implementa el sistema de foco.
+/// </summary>
 public class UpdateProductView : IView
 {
     private readonly InventoryManager _inventoryManager;
     private int _selectedIndex = 0;
+    private FocusState _focusState = FocusState.Content;
+    private int _navigationIndex = 3;
 
-    public UpdateProductView(InventoryManager manager)
-    {
-        _inventoryManager = manager;
-    }
+    public UpdateProductView(InventoryManager manager) => _inventoryManager = manager;
 
     public void Draw()
     {
-        DrawLayout("Actualizar producto");
-
-        int contentX = 27;
-        int contentY = 3;
-
+        DrawLayout("Actualizar producto", _focusState);
+        Console.CursorVisible = false;
+        int contentX = 27, contentY = 3;
         Console.SetCursorPosition(contentX, contentY);
         Console.Write("/ Actualizar producto");
-
         int tableY = contentY + 5;
         DrawBox(contentX, tableY, Console.WindowWidth - contentX - 2, Console.WindowHeight - tableY - 2);
-
         Console.SetCursorPosition(contentX + 2, tableY + 1);
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.Write("Producto");
@@ -36,12 +33,12 @@ public class UpdateProductView : IView
         {
             var product = products[i];
             Console.SetCursorPosition(contentX + 2, tableY + 3 + i);
-
-            if (i == _selectedIndex) Console.BackgroundColor = ConsoleColor.DarkCyan;
-
+            if (i == _selectedIndex && _focusState == FocusState.Content)
+            {
+                Console.BackgroundColor = ConsoleColor.DarkGray;
+            }
             Console.Write(product.Name.PadRight(Console.WindowWidth - contentX - 22));
             Console.ResetColor();
-
             string quantityStr = product.Quantity.ToString();
             Console.SetCursorPosition(Console.WindowWidth - 20, tableY + 3 + i);
             Console.Write("[-] ");
@@ -52,31 +49,35 @@ public class UpdateProductView : IView
 
     public IView HandleInput(ConsoleKeyInfo key)
     {
+        if (_focusState == FocusState.Navigation)
+        {
+            if (key.Key is ConsoleKey.Enter or ConsoleKey.RightArrow)
+            {
+                var nextView = NavigationHelper.GetViewByIndex(_navigationIndex, _inventoryManager);
+                if (nextView is UpdateProductView) { _focusState = FocusState.Content; return this; }
+                return nextView;
+            }
+            NavigationHelper.HandleMenuNavigation(key, ref _navigationIndex, _inventoryManager);
+            return this;
+        }
+
         var products = _inventoryManager.Products;
         if (products.Count == 0)
         {
-            if (key.Key == ConsoleKey.Escape) return new MainMenuView(_inventoryManager);
+            if (key.Key is ConsoleKey.Escape or ConsoleKey.LeftArrow) _focusState = FocusState.Navigation;
             return this;
         }
 
         switch (key.Key)
         {
-            case ConsoleKey.UpArrow:
-                _selectedIndex = (_selectedIndex > 0) ? _selectedIndex - 1 : products.Count - 1;
-                break;
-            case ConsoleKey.DownArrow:
-                _selectedIndex = (_selectedIndex < products.Count - 1) ? _selectedIndex + 1 : 0;
-                break;
-            case ConsoleKey.OemPlus or ConsoleKey.Add or ConsoleKey.RightArrow:
-                _inventoryManager.UpdateProductQuantity(products[_selectedIndex].Id, 1);
-                break;
-            case ConsoleKey.OemMinus or ConsoleKey.Subtract or ConsoleKey.LeftArrow:
-                _inventoryManager.UpdateProductQuantity(products[_selectedIndex].Id, -1);
-                break;
-            case ConsoleKey.Escape:
-                return new MainMenuView(_inventoryManager);
+            case ConsoleKey.Escape or ConsoleKey.LeftArrow: _focusState = FocusState.Navigation; break;
+            case ConsoleKey.UpArrow: _selectedIndex = (_selectedIndex > 0) ? _selectedIndex - 1 : products.Count - 1; break;
+            case ConsoleKey.DownArrow: _selectedIndex = (_selectedIndex < products.Count - 1) ? _selectedIndex + 1 : 0; break;
+            case ConsoleKey.OemPlus or ConsoleKey.Add: _inventoryManager.UpdateProductQuantity(products[_selectedIndex].Id, 1); break;
+            case ConsoleKey.OemMinus or ConsoleKey.Subtract: _inventoryManager.UpdateProductQuantity(products[_selectedIndex].Id, -1); break;
         }
         return this;
     }
 }
+
 

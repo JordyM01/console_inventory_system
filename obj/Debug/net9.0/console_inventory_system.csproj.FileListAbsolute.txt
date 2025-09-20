@@ -12,3 +12,4 @@
 /home/jordym/Downloads/Documentos de Ingenieria en sistemas/II Semestre/Programacion estructurada/Semana 6/console_inventory_system/obj/Debug/net9.0/console_inventory_system.pdb
 /home/jordym/Downloads/Documentos de Ingenieria en sistemas/II Semestre/Programacion estructurada/Semana 6/console_inventory_system/obj/Debug/net9.0/console_inventory_system.genruntimeconfig.cache
 /home/jordym/Downloads/Documentos de Ingenieria en sistemas/II Semestre/Programacion estructurada/Semana 6/console_inventory_system/obj/Debug/net9.0/ref/console_inventory_system.dll
+/home/jordym/Downloads/Documentos de Ingenieria en sistemas/II Semestre/Programacion estructurada/Semana 6/console_inventory_system/obj/Debug/net9.0/console_inventory_system.sourcelink.json

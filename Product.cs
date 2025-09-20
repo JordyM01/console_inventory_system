@@ -1,3 +1,7 @@
+/// <summary>
+/// Define la estructura de datos para un producto.
+/// Se usa un 'record' para obtener inmutabilidad y comparación por valor de forma sencilla.
+/// </summary>
 public record Product(
     string Id,
     string Sku,
@@ -8,5 +12,4 @@ public record Product(
     string Description,
     decimal Price
 );
-
 

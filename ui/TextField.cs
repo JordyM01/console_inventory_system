@@ -1,5 +1,8 @@
 using System.Text;
 
+/// <summary>
+/// Representa un campo de texto interactivo y reutilizable en la consola.
+/// </summary>
 public class TextField
 {
     private readonly int _x, _y, _width;
@@ -14,12 +17,15 @@ public class TextField
         _textBuilder = new StringBuilder(initialText);
     }
 
+    /// <summary>
+    /// Dibuja el campo de texto y su contenido, incluyendo el efecto de barrido.
+    /// </summary>
     public void Draw()
     {
         UiComponents.DrawBox(_x, _y, _width, 3, ConsoleColor.DarkYellow);
 
         string textToDisplay = Text;
-        int displayWidth = _width - 4;
+        int displayWidth = _width - 4; // Espacio para bordes y padding
 
         if (textToDisplay.Length > displayWidth)
         {
@@ -27,16 +33,17 @@ public class TextField
         }
 
         Console.SetCursorPosition(_x + 2, _y + 1);
-        Console.Write(new string(' ', displayWidth));
+        Console.Write(new string(' ', displayWidth)); // Limpia
         Console.SetCursorPosition(_x + 2, _y + 1);
-        Console.Write(textToDisplay);
+        Console.Write(textToDisplay); // Escribe
 
-        // --- CORRECCIÓN ---
-        // Se elimina la línea Console.CursorVisible = true; de aquí.
-        // La vista que usa este componente ahora es responsable de la visibilidad del cursor.
+        // Posiciona el cursor al final del texto para la entrada del usuario
         Console.SetCursorPosition(_x + 2 + textToDisplay.Length, _y + 1);
     }
 
+    /// <summary>
+    /// Procesa una tecla. Devuelve true si el texto cambió.
+    /// </summary>
     public bool HandleKey(ConsoleKeyInfo key)
     {
         if (key.Key == ConsoleKey.Backspace && _textBuilder.Length > 0)
@@ -52,5 +59,6 @@ public class TextField
         return false;
     }
 }
+
 
 

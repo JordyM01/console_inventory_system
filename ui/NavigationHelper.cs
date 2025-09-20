@@ -1,3 +1,6 @@
+/// <summary>
+/// Clase estática con métodos centralizados para manejar la navegación del menú lateral.
+/// </summary>
 public static class NavigationHelper
 {
     public static readonly string[] MenuItems = {
@@ -5,44 +8,43 @@ public static class NavigationHelper
         "Actualizar producto", "Eliminar producto", "Acerca del software", "Salir"
     };
 
-    public static IView HandleVerticalNavigation(string currentViewName, ConsoleKeyInfo key, InventoryManager manager)
+    // CORRECCIÓN: Se cambió el nombre de 'HandleVerticalNavigation' a 'HandleMenuNavigation'
+    // para que coincida con las llamadas desde las vistas.
+    /// <summary>
+    /// Procesa las teclas de flecha arriba/abajo para cambiar el índice de navegación.
+    /// </summary>
+    public static void HandleMenuNavigation(ConsoleKeyInfo key, ref int navigationIndex, InventoryManager manager)
     {
-        int currentIndex = Array.IndexOf(MenuItems, currentViewName);
-        if (currentViewName == "MainMenuView") currentIndex = 0;
-
         switch (key.Key)
         {
             case ConsoleKey.UpArrow:
-                int prevIndex = (currentIndex > 0) ? currentIndex - 1 : MenuItems.Length - 1;
-                return GetViewByIndex(prevIndex, manager);
+                navigationIndex = (navigationIndex > 0) ? navigationIndex - 1 : MenuItems.Length - 1;
+                break;
 
             case ConsoleKey.DownArrow:
-                int nextIndex = (currentIndex < MenuItems.Length - 1) ? currentIndex + 1 : 0;
-                return GetViewByIndex(nextIndex, manager);
-
-                // --- CORRECCIÓN ---
-                // Se ha eliminado la lógica de Backspace y Escape de este método.
-                // Ahora, cada vista es responsable de manejar su propia tecla de "salida",
-                // lo que permite un control más granular. Este helper solo se enfoca en la
-                // navegación vertical del menú.
+                navigationIndex = (navigationIndex < MenuItems.Length - 1) ? navigationIndex + 1 : 0;
+                break;
         }
-
-        return null;
     }
 
-    private static IView GetViewByIndex(int index, InventoryManager manager)
+    // CORRECCIÓN: Se cambió el modificador de acceso de 'private' a 'public' para que
+    // las vistas puedan llamar a este método.
+    /// <summary>
+    /// Devuelve una nueva instancia de una vista basada en su índice en el menú.
+    /// </summary>
+    public static IView GetViewByIndex(int index, InventoryManager manager)
     {
-        switch (index)
+        return index switch
         {
-            case 0: return new MainMenuView(manager);
-            case 1: return new AddProductView(manager);
-            case 2: return new ShowProductsView(manager);
-            case 3: return new UpdateProductView(manager);
-            case 4: return new DeleteProductView(manager);
-            case 5: return new AboutView(manager);
-            case 6: return null; // Salir
-            default: return new MainMenuView(manager);
-        }
+            0 => new MainMenuView(manager),
+            1 => new AddProductView(manager),
+            2 => new ShowProductsView(manager),
+            3 => new UpdateProductView(manager),
+            4 => new DeleteProductView(manager),
+            5 => new AboutView(manager),
+            6 => null, // La opción "Salir" devuelve null para terminar la aplicación
+            _ => new MainMenuView(manager) // Caso por defecto
+        };
     }
 }
 

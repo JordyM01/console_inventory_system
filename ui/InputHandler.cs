@@ -1,8 +1,13 @@
 using System.Text;
 
+// Define los tipos de datos que un campo puede aceptar
 public enum InputType { Text, Integer, Decimal }
+// Define los posibles resultados al terminar una edición para un control de flujo más claro
 public enum EditResult { Confirmed, Canceled, TabbedForward }
 
+/// <summary>
+/// Clase dedicada a tomar control del teclado para editar un campo específico.
+/// </summary>
 public class InputHandler
 {
     private readonly int _x, _y, _width;
@@ -18,6 +23,9 @@ public class InputHandler
         _type = type;
     }
 
+    /// <summary>
+    /// Activa el modo de edición y devuelve el valor y el resultado de la edición.
+    /// </summary>
     public (string, EditResult) ProcessInput()
     {
         var textBuilder = new StringBuilder(_originalValue);
@@ -35,8 +43,8 @@ public class InputHandler
             switch (_type)
             {
                 case InputType.Text: HandleTextInput(key, textBuilder); break;
-                case InputType.Integer: HandleNumericInput(key, textBuilder, allowDecimal: false); break;
-                case InputType.Decimal: HandleNumericInput(key, textBuilder, allowDecimal: true); break;
+                case InputType.Integer: HandleNumericInput(key, textBuilder, false); break;
+                case InputType.Decimal: HandleNumericInput(key, textBuilder, true); break;
             }
         }
     }
@@ -65,20 +73,16 @@ public class InputHandler
             textBuilder.Append('.');
         }
     }
-
     private void DrawInputText(string text)
     {
         Console.SetCursorPosition(_x, _y);
-        // --- CAMBIO DE COLOR A ALTO CONTRASTE ---
-        Console.BackgroundColor = ConsoleColor.Cyan;    // Fondo cyan para la edición
-        Console.ForegroundColor = ConsoleColor.Black;   // Texto negro para máxima legibilidad
-
+        Console.BackgroundColor = ConsoleColor.Cyan;
+        Console.ForegroundColor = ConsoleColor.Black;
         string textToDisplay = text;
         if (text.Length > _width)
         {
             textToDisplay = "..." + text.Substring(text.Length - _width + 3);
         }
-
         Console.Write(textToDisplay.PadRight(_width));
         Console.SetCursorPosition(_x + textToDisplay.Length, _y);
         Console.ResetColor();

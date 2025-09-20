@@ -1,41 +1,31 @@
 using static UiComponents;
 
-// --- Vista de "Acerca del Software" ---
+/// <summary>
+/// Vista estática "Acerca de". Implementa el sistema de foco.
+/// </summary>
 public class AboutView : IView
 {
     private readonly InventoryManager _inventoryManager;
+    private FocusState _focusState = FocusState.Content;
+    private int _navigationIndex = 5;
 
-    public AboutView(InventoryManager manager)
-    {
-        _inventoryManager = manager;
-    }
+    public AboutView(InventoryManager manager) => _inventoryManager = manager;
 
     public void Draw()
     {
-        // 1. Dibuja el layout base con el panel de navegación
-        DrawLayout("Acerca del software");
-
-        // 2. Dibuja el contenido específico de esta vista
-        int contentX = 27; // Ancho del panel izquierdo + 2
-        int contentY = 3;
-
+        DrawLayout("Acerca del software", _focusState);
+        Console.CursorVisible = false;
+        int contentX = 27, contentY = 3;
         Console.SetCursorPosition(contentX, contentY);
         Console.ForegroundColor = ConsoleColor.White;
         Console.Write("/ Acerca del software");
-
-        // Dibuja una caja para el contenido principal
         int boxY = contentY + 4;
         DrawBox(contentX, boxY, Console.WindowWidth - contentX - 2, 12, ConsoleColor.Green);
 
-        // Escribe la información dentro de la caja
         string[] aboutLines = {
-            "Sistema de Gestión de Inventario",
-            "Versión 1.0.0",
-            "",
-            "Desarrollado por: JordyM",
-            "Proyecto de Aplicación de Consola en .NET",
-            "",
-            "Copyright (c) 2025",
+            "Sistema de Gestión de Inventario", "Versión 1.0.0", "",
+            "Desarrollado por: JordyM", "Proyecto de Aplicación de Consola en .NET",
+            "", "Copyright (c) 2025",
         };
 
         for (int i = 0; i < aboutLines.Length; i++)
@@ -44,21 +34,29 @@ public class AboutView : IView
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.Write(aboutLines[i]);
         }
-
-        // Instrucciones de navegación
-        string instructions = "Use las flechas ↑ ↓, ESC o Backspace para navegar.";
-        Console.SetCursorPosition(Console.WindowWidth - instructions.Length - 3, Console.WindowHeight - 2);
-        Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.Write(instructions);
-
         Console.ResetColor();
     }
 
     public IView HandleInput(ConsoleKeyInfo key)
     {
-        // Esta vista solo necesita la navegación global.
-        // Devuelve la vista que el helper determine o se queda aquí si no es una tecla de navegación.
-        return NavigationHelper.HandleVerticalNavigation("Acerca del software", key, _inventoryManager) ?? this;
+        if (_focusState == FocusState.Navigation)
+        {
+            if (key.Key is ConsoleKey.Enter or ConsoleKey.RightArrow)
+            {
+                var nextView = NavigationHelper.GetViewByIndex(_navigationIndex, _inventoryManager);
+                if (nextView is AboutView) { _focusState = FocusState.Content; return this; }
+                return nextView;
+            }
+            NavigationHelper.HandleMenuNavigation(key, ref _navigationIndex, _inventoryManager);
+            return this;
+        }
+
+        if (key.Key is ConsoleKey.Escape or ConsoleKey.LeftArrow)
+        {
+            _focusState = FocusState.Navigation;
+        }
+        return this; // El contenido no es interactivo, no hace nada más
     }
 }
+
 
