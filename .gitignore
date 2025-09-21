@@ -1,0 +1,21 @@
+# Archivos de configuración de usuario de Visual Studio y Rider
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Carpetas de compilación generadas por .NET
+[Bb]in/
+[Oo]bj/
+
+# Archivos de datos generados por la aplicación (Descomentar si no quieres versionar los datos)
+# inventory.json
+# inventory.dat
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
+
+# Archivos de caché y logs
+*.log
+*.cache
