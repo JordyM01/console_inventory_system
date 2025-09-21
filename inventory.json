@@ -1,0 +1,12 @@
+[
+  {
+    "Id": "9BAA2EA1",
+    "Sku": "HJK-25-HJ",
+    "Name": "Martillo",
+    "Quantity": 9,
+    "Category": "Herramienta",
+    "MinQuantity": 4,
+    "Description": "Martillo de goma",
+    "Price": 150
+  }
+]

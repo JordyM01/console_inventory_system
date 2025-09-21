@@ -1,12 +1,13 @@
-// FilePath: InventoryManager.cs
+using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 
 /// <summary>
 /// Capa de lógica de negocio.
-/// Gestiona todas las operaciones de los productos (CRUD) y la persistencia de datos en un archivo binario.
-/// No tiene conocimiento de la interfaz de usuario.
+/// Gestiona todas las operaciones de los productos (CRUD) y la persistencia de datos.
+/// No debe contener ninguna referencia a la lógica de la interfaz de usuario (UI).
 /// </summary>
 public class InventoryManager
 {
@@ -20,14 +21,8 @@ public class InventoryManager
         LoadFromFile();
     }
 
-    /// <summary>
-    /// Proporciona acceso de solo lectura a la lista de productos para las vistas.
-    /// </summary>
     public IReadOnlyList<Product> Products => _products.AsReadOnly();
 
-    /// <summary>
-    /// Filtra la lista de productos por Nombre o SKU (sin distinguir mayúsculas/minúsculas).
-    /// </summary>
     public IEnumerable<Product> SearchProducts(string searchTerm)
     {
         if (string.IsNullOrWhiteSpace(searchTerm)) return _products;
@@ -37,18 +32,12 @@ public class InventoryManager
         );
     }
 
-    /// <summary>
-    /// Agrega un nuevo producto a la lista y guarda en el archivo.
-    /// </summary>
     public void AddProduct(Product product)
     {
         _products.Add(product);
         SaveToFile();
     }
 
-    /// <summary>
-    /// Actualiza la cantidad de un producto específico y guarda en el archivo.
-    /// </summary>
     public void UpdateProductQuantity(string productId, int change)
     {
         var productIndex = _products.FindIndex(p => p.Id == productId);
@@ -61,9 +50,6 @@ public class InventoryManager
         }
     }
 
-    /// <summary>
-    /// Elimina un producto por su ID y guarda en el archivo.
-    /// </summary>
     public void DeleteProduct(string productId)
     {
         _products.RemoveAll(p => p.Id == productId);
@@ -71,44 +57,50 @@ public class InventoryManager
     }
 
     /// <summary>
-    /// Carga la lista de productos desde un archivo binario.
+    /// Carga la lista de productos desde un archivo JSON.
     /// </summary>
     private void LoadFromFile()
     {
         if (!File.Exists(_filePath)) return;
+
         try
         {
-            using var reader = new BinaryReader(File.Open(_filePath, FileMode.Open));
-            int count = reader.ReadInt32();
-            for (int i = 0; i < count; i++)
+            string jsonString = File.ReadAllText(_filePath);
+            if (string.IsNullOrWhiteSpace(jsonString))
             {
-                _products.Add(new Product(
-                    Id: reader.ReadString(), Sku: reader.ReadString(), Name: reader.ReadString(),
-                    Quantity: reader.ReadInt32(), Category: reader.ReadString(), MinQuantity: reader.ReadInt32(),
-                    Description: reader.ReadString(), Price: reader.ReadDecimal()
-                ));
+                _products = new List<Product>();
+                return;
             }
+            _products = JsonSerializer.Deserialize<List<Product>>(jsonString) ?? new List<Product>();
         }
-        catch (IOException e) { Console.WriteLine($"Error al cargar el inventario: {e.Message}"); }
+        catch (JsonException ex)
+        {
+            // Escribir errores en la consola es aceptable para la depuración en la capa de negocio.
+            Console.WriteLine($"Error al leer el archivo JSON: {ex.Message}");
+            _products = new List<Product>();
+        }
+        catch (IOException e)
+        {
+            Console.WriteLine($"Error de E/S al cargar el inventario: {e.Message}");
+        }
     }
 
     /// <summary>
-    /// Guarda la lista completa de productos en un archivo binario.
+    /// Guarda la lista completa de productos en un archivo JSON con formato indentado.
     /// </summary>
     private void SaveToFile()
     {
         try
         {
-            using var writer = new BinaryWriter(File.Open(_filePath, FileMode.Create));
-            writer.Write(_products.Count);
-            foreach (var p in _products)
-            {
-                writer.Write(p.Id); writer.Write(p.Sku); writer.Write(p.Name);
-                writer.Write(p.Quantity); writer.Write(p.Category); writer.Write(p.MinQuantity);
-                writer.Write(p.Description); writer.Write(p.Price);
-            }
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            string jsonString = JsonSerializer.Serialize(_products, options);
+            File.WriteAllText(_filePath, jsonString);
         }
-        catch (IOException e) { Console.WriteLine($"Error al guardar el inventario: {e.Message}"); }
+        catch (IOException e)
+        {
+            Console.WriteLine($"Error de E/S al guardar el inventario: {e.Message}");
+        }
     }
 }
+
 

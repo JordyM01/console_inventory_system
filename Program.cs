@@ -1,5 +1,8 @@
 ﻿using System.Text;
 
+/// <summary>
+/// Punto de entrada y orquestador principal de la aplicación.
+/// </summary>
 public class Program
 {
     private static int _lastWindowWidth = 0;
@@ -11,9 +14,8 @@ public class Program
         Console.Title = "Sistema de Gestión de Inventario";
         Console.CursorVisible = false;
 
-        var inventoryManager = new InventoryManager("inventory.dat");
+        var inventoryManager = new InventoryManager("inventory.json");
 
-        // CORRECCIÓN (CS8600): Se usa 'IView?' para indicar que las vistas pueden ser null.
         IView? currentView = new MainMenuView(inventoryManager);
         IView? previousView = null;
 
@@ -46,6 +48,5 @@ public class Program
         return false;
     }
 }
-
 
 
