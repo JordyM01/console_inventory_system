@@ -1,15 +1,19 @@
+using System.Text.Json.Serialization; // Necesario para los atributos de mapeo de JSON
+
 /// <summary>
 /// Define la estructura de datos para un producto.
-/// Se usa un 'record' para obtener inmutabilidad y comparación por valor de forma sencilla.
+/// Se usan atributos [JsonPropertyName] para mapear los nombres del archivo JSON
+/// a las propiedades de la clase en C#, permitiendo que sean diferentes.
 /// </summary>
 public record Product(
-    string Id,
-    string Sku,
-    string Name,
-    int Quantity,
-    string Category,
-    int MinQuantity,
-    string Description,
-    decimal Price
+    // El atributo [JsonPropertyName] le dice al serializador:
+    // "Cuando veas la propiedad 'ID' en el JSON, pon su valor en la propiedad 'Id' de esta clase."
+    [property: JsonPropertyName("ID")] string Id,
+    [property: JsonPropertyName("SKU")] string Sku,
+    [property: JsonPropertyName("Producto")] string Name,
+    [property: JsonPropertyName("cantidad")] int Quantity,
+    [property: JsonPropertyName("categoria")] string Category,
+    [property: JsonPropertyName("cant_minima")] int MinQuantity,
+    [property: JsonPropertyName("descripcion")] string Description,
+    [property: JsonPropertyName("precio")] decimal Price
 );
-
