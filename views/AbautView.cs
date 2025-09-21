@@ -10,7 +10,7 @@ public class AboutView : IView
 
     public void Draw()
     {
-        DrawLayout("Acerca del software", _focusState);
+        UiComponents.DrawLayout("Acerca del software", _navigationIndex, _focusState);
         Console.CursorVisible = false;
         int contentX = 27, contentY = 3;
         Console.SetCursorPosition(contentX, contentY);

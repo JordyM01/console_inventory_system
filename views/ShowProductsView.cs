@@ -1,5 +1,8 @@
 using static UiComponents;
 
+/// <summary>
+/// Vista para buscar y mostrar productos. Implementa el sistema de foco y scroll.
+/// </summary>
 public class ShowProductsView : IView
 {
     private readonly InventoryManager _inventoryManager;
@@ -8,7 +11,7 @@ public class ShowProductsView : IView
     private int _selectedIndex = -1;
     private int _scrollTop = 0;
     private FocusState _focusState = FocusState.Content;
-    private int _navigationIndex = 2;
+    private int _navigationIndex = 2; // Índice de "Mostrar productos"
 
     public ShowProductsView(InventoryManager manager)
     {
@@ -19,19 +22,18 @@ public class ShowProductsView : IView
 
     public void Draw()
     {
-        DrawLayout("Mostrar productos", _focusState);
+        UiComponents.DrawLayout("Mostrar productos", _navigationIndex, _focusState);
         Console.CursorVisible = _focusState == FocusState.Content;
         int contentX = 27, contentY = 3;
+
         Console.SetCursorPosition(contentX, contentY);
-        Console.Write("/ Buscar producto");
+        Console.Write("/ Mostrar productos");
 
         int tableY = 11;
         int tableHeight = Console.WindowHeight - tableY - 2;
         int availableRows = tableHeight - 4;
-
         Console.SetCursorPosition(contentX, tableY - 2);
         Console.Write(new string(' ', Console.WindowWidth - contentX - 2));
-
         if (!_filteredProducts.Any())
         {
             string noResults = "No se encontraron resultados para su búsqueda.";
@@ -50,7 +52,6 @@ public class ShowProductsView : IView
             Console.Write("SKU".PadRight(15));
             Console.Write("Cant.");
             Console.ResetColor();
-
             for (int i = 0; i < availableRows; i++)
             {
                 int productIndex = _scrollTop + i;
@@ -88,20 +89,16 @@ public class ShowProductsView : IView
                 if (nextView is ShowProductsView) { _focusState = FocusState.Content; return this; }
                 return nextView;
             }
-            // CORRECCIÓN (CS1501): Se elimina el tercer argumento 'manager'.
             NavigationHelper.HandleMenuNavigation(key, ref _navigationIndex);
             return this;
         }
-
         if (key.Key is ConsoleKey.Escape or ConsoleKey.LeftArrow) { _focusState = FocusState.Navigation; return this; }
-
         if (_searchField.HandleKey(key))
         {
             _filteredProducts = _inventoryManager.SearchProducts(_searchField.Text).ToList();
             _selectedIndex = -1; _scrollTop = 0;
             return this;
         }
-
         int availableRows = Console.WindowHeight - 11 - 6;
         if (key.Key == ConsoleKey.UpArrow && _filteredProducts.Any())
         {

@@ -2,6 +2,7 @@ using static UiComponents;
 
 public class AddProductView : IView
 {
+    // ... (propiedades de la clase sin cambios)
     private readonly InventoryManager _inventoryManager;
     private Product _newProduct;
     private int _currentFieldIndex = 0;
@@ -20,8 +21,11 @@ public class AddProductView : IView
 
     public void Draw()
     {
-        DrawLayout("Agregar producto", _focusState);
+        // --- CORRECCIÓN ---
+        // Se pasa el nombre de la vista ("Agregar producto") a DrawLayout para el marcador ">".
+        UiComponents.DrawLayout("Agregar producto", _navigationIndex, _focusState);
         Console.CursorVisible = _focusState == FocusState.Content && _isEditing;
+        // ... (el resto del método Draw es idéntico)
         int contentX = 27, contentY = 3;
         Console.SetCursorPosition(contentX, contentY); Console.Write("/ Agregar producto");
         DrawFormField(contentX, 7, "Id", _newProduct.Id, false);
@@ -40,6 +44,7 @@ public class AddProductView : IView
         Console.ResetColor();
     }
 
+    // El resto de la clase no ha cambiado
     public IView HandleInput(ConsoleKeyInfo key)
     {
         if (_focusState == FocusState.Navigation)
@@ -50,20 +55,16 @@ public class AddProductView : IView
                 if (nextView is AddProductView) { _focusState = FocusState.Content; return this; }
                 return nextView;
             }
-            // CORRECCIÓN (CS1501): Se elimina el tercer argumento 'manager'.
             NavigationHelper.HandleMenuNavigation(key, ref _navigationIndex);
             return this;
         }
-
         if (_isEditing) return this;
-
         if (_awaitingG_ForSave)
         {
             if (key.Key == ConsoleKey.G) { _awaitingG_ForSave = false; return ValidateAndSave(); }
             _awaitingG_ForSave = false;
         }
         if (key.Key == ConsoleKey.Spacebar) { _awaitingG_ForSave = true; _validationError = ""; return this; }
-
         switch (key.Key)
         {
             case ConsoleKey.LeftArrow or ConsoleKey.Escape: _focusState = FocusState.Navigation; break;
@@ -73,7 +74,6 @@ public class AddProductView : IView
         }
         return this;
     }
-
     private void EnterEditMode(int startingFieldIndex)
     {
         _isEditing = true;
@@ -90,7 +90,6 @@ public class AddProductView : IView
         _isEditing = false;
         Draw();
     }
-
     private (string, EditResult) EditField(int fieldIndex)
     {
         int textX = 45, textW = 26, numX = 48, numW = 13;
@@ -106,7 +105,6 @@ public class AddProductView : IView
             _ => ("", EditResult.Canceled)
         };
     }
-
     private void UpdateProductField(int fieldIndex, string value)
     {
         switch (fieldIndex)
@@ -120,7 +118,6 @@ public class AddProductView : IView
             case 6: decimal.TryParse(value, out decimal price); if (price >= 0) _newProduct = _newProduct with { Price = price }; break;
         }
     }
-
     private IView ValidateAndSave()
     {
         var errors = new List<string>();

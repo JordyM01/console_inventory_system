@@ -11,7 +11,7 @@ public class UpdateProductView : IView
 
     public void Draw()
     {
-        DrawLayout("Actualizar producto", _focusState);
+        UiComponents.DrawLayout("Actualizar producto", _navigationIndex, _focusState);
         Console.CursorVisible = false;
         int contentX = 27, contentY = 3;
         Console.SetCursorPosition(contentX, contentY);
@@ -24,7 +24,6 @@ public class UpdateProductView : IView
         Console.SetCursorPosition(Console.WindowWidth - 18, tableY + 1);
         Console.Write("Cantidad");
         Console.ResetColor();
-
         var products = _inventoryManager.Products;
         for (int i = 0; i < products.Count; i++)
         {
@@ -54,18 +53,15 @@ public class UpdateProductView : IView
                 if (nextView is UpdateProductView) { _focusState = FocusState.Content; return this; }
                 return nextView;
             }
-            // CORRECCIÓN (CS1501): Se elimina el tercer argumento 'manager'.
             NavigationHelper.HandleMenuNavigation(key, ref _navigationIndex);
             return this;
         }
-
         var products = _inventoryManager.Products;
         if (products.Count == 0)
         {
             if (key.Key is ConsoleKey.Escape or ConsoleKey.LeftArrow) _focusState = FocusState.Navigation;
             return this;
         }
-
         switch (key.Key)
         {
             case ConsoleKey.Escape or ConsoleKey.LeftArrow: _focusState = FocusState.Navigation; break;
