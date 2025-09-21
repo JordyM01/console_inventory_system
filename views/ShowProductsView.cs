@@ -31,44 +31,35 @@ public class ShowProductsView : IView
     public void Draw()
     {
         UiComponents.DrawLayout("Mostrar productos", _navigationIndex, _focusState);
-        Console.CursorVisible = _focusState == FocusState.Content && !_isViewingDetails;
         int contentX = 27, contentY = 3;
         Console.SetCursorPosition(contentX, contentY);
         Console.Write("/ Mostrar productos");
 
-        _searchField.Draw();
+        int tableY = 11;
+        int tableHeight = Console.WindowHeight - tableY - 2;
 
-        // Define el área donde irá la tabla o el panel de detalles
-        int panelX = contentX;
-        int panelY = 11;
-        int panelWidth = Console.WindowWidth - contentX - 2;
-        int panelHeight = Console.WindowHeight - panelY - 2;
-
-        // --- LÓGICA DE DIBUJADO CONDICIONAL ---
         if (_isViewingDetails && _selectedIndex > -1 && _selectedIndex < _filteredProducts.Count)
         {
-            // Si estamos viendo detalles, dibuja el panel de detalles en el área designada.
             UiComponents.DrawProductDetailsPanel(
                 _filteredProducts[_selectedIndex],
-                panelX, panelY, panelWidth, panelHeight
+                contentX, tableY, Console.WindowWidth - contentX - 2, tableHeight
             );
         }
         else
         {
-            // Si no, dibuja la tabla de productos en la misma área.
-            DrawProductTable(panelX, panelY, panelWidth, panelHeight);
+            DrawProductTable(contentX, tableY, Console.WindowWidth - contentX - 2, tableHeight);
         }
+
+        _searchField.Draw();
+        Console.CursorVisible = _focusState == FocusState.Content && !_isViewingDetails;
     }
 
-    /// <summary>
-    /// Lógica encapsulada para dibujar la tabla de productos.
-    /// </summary>
     private void DrawProductTable(int x, int y, int width, int height)
     {
-        int availableRows = height - 4;
+        int availableRows = (height - 4) / 2;
 
         Console.SetCursorPosition(x, y - 2);
-        Console.Write(new string(' ', width)); // Limpia área de mensaje
+        Console.Write(new string(' ', width));
 
         if (!_filteredProducts.Any())
         {
@@ -93,7 +84,8 @@ public class ShowProductsView : IView
         for (int i = 0; i < availableRows; i++)
         {
             int productIndex = _scrollTop + i;
-            int currentLineY = y + 3 + i;
+            int currentLineY = y + 3 + (i * 2);
+
             Console.SetCursorPosition(x + 2, currentLineY);
             Console.Write(new string(' ', width - 4));
             if (productIndex >= _filteredProducts.Count) continue;
@@ -121,7 +113,6 @@ public class ShowProductsView : IView
 
     public IView HandleInput(ConsoleKeyInfo key)
     {
-        // Si el panel de detalles está abierto, cualquier tecla lo cierra.
         if (_isViewingDetails)
         {
             _isViewingDetails = false;
@@ -146,7 +137,6 @@ public class ShowProductsView : IView
             return this;
         }
 
-        // Al presionar Enter sobre un producto, se activa el modo de vista de detalles.
         if (key.Key == ConsoleKey.Enter && _selectedIndex != -1)
         {
             _isViewingDetails = true;
@@ -159,7 +149,7 @@ public class ShowProductsView : IView
             return this;
         }
 
-        int availableRows = Console.WindowHeight - 11 - 6;
+        int availableRows = (Console.WindowHeight - 11 - 6) / 2;
         if (key.Key == ConsoleKey.UpArrow && _filteredProducts.Any())
         {
             _selectedIndex = _selectedIndex == -1 ? _filteredProducts.Count - 1 : Math.Max(0, _selectedIndex - 1);
