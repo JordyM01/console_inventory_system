@@ -1,7 +1,7 @@
 using static UiComponents;
 
 /// <summary>
-/// Vista para buscar y mostrar productos. Implementa el sistema de foco y scroll.
+/// Vista para buscar, mostrar y ver detalles de productos.
 /// </summary>
 public class ShowProductsView : IView
 {
@@ -11,7 +11,8 @@ public class ShowProductsView : IView
     private int _selectedIndex = -1;
     private int _scrollTop = 0;
     private FocusState _focusState = FocusState.Content;
-    private int _navigationIndex = 2; // Índice de "Mostrar productos"
+    private int _navigationIndex = 2;
+    private bool _isViewingDetails = false;
 
     public ShowProductsView(InventoryManager manager)
     {
@@ -20,67 +21,113 @@ public class ShowProductsView : IView
         _searchField = new TextField(27, 6, Console.WindowWidth - 27 - 3);
     }
 
+    private void UpdateFilteredList()
+    {
+        _filteredProducts = _inventoryManager.SearchProducts(_searchField.Text).ToList();
+        _selectedIndex = -1;
+        _scrollTop = 0;
+    }
+
     public void Draw()
     {
         UiComponents.DrawLayout("Mostrar productos", _navigationIndex, _focusState);
-        Console.CursorVisible = _focusState == FocusState.Content;
+        Console.CursorVisible = _focusState == FocusState.Content && !_isViewingDetails;
         int contentX = 27, contentY = 3;
-
         Console.SetCursorPosition(contentX, contentY);
         Console.Write("/ Mostrar productos");
 
-        int tableY = 11;
-        int tableHeight = Console.WindowHeight - tableY - 2;
-        int availableRows = tableHeight - 4;
-        Console.SetCursorPosition(contentX, tableY - 2);
-        Console.Write(new string(' ', Console.WindowWidth - contentX - 2));
-        if (!_filteredProducts.Any())
+        _searchField.Draw();
+
+        // Define el área donde irá la tabla o el panel de detalles
+        int panelX = contentX;
+        int panelY = 11;
+        int panelWidth = Console.WindowWidth - contentX - 2;
+        int panelHeight = Console.WindowHeight - panelY - 2;
+
+        // --- LÓGICA DE DIBUJADO CONDICIONAL ---
+        if (_isViewingDetails && _selectedIndex > -1 && _selectedIndex < _filteredProducts.Count)
         {
-            string noResults = "No se encontraron resultados para su búsqueda.";
-            Console.SetCursorPosition(contentX, tableY - 2);
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.Write(noResults);
-            Console.ResetColor();
-            DrawBox(contentX, tableY, Console.WindowWidth - contentX - 2, tableHeight);
+            // Si estamos viendo detalles, dibuja el panel de detalles en el área designada.
+            UiComponents.DrawProductDetailsPanel(
+                _filteredProducts[_selectedIndex],
+                panelX, panelY, panelWidth, panelHeight
+            );
         }
         else
         {
-            DrawBox(contentX, tableY, Console.WindowWidth - contentX - 2, tableHeight);
-            Console.SetCursorPosition(contentX + 2, tableY + 1);
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.Write("Producto".PadRight(Console.WindowWidth - contentX - 30));
-            Console.Write("SKU".PadRight(15));
-            Console.Write("Cant.");
-            Console.ResetColor();
-            for (int i = 0; i < availableRows; i++)
-            {
-                int productIndex = _scrollTop + i;
-                int currentLineY = tableY + 3 + i;
-                Console.SetCursorPosition(contentX + 2, currentLineY);
-                Console.Write(new string(' ', Console.WindowWidth - contentX - 4));
-                if (productIndex >= _filteredProducts.Count) continue;
-                var product = _filteredProducts[productIndex];
-                Console.SetCursorPosition(contentX + 2, currentLineY);
-                if (productIndex == _selectedIndex && _focusState == FocusState.Content)
-                {
-                    Console.BackgroundColor = ConsoleColor.Gray;
-                    Console.ForegroundColor = ConsoleColor.Black;
-                }
-                string name = product.Name.PadRight(Console.WindowWidth - contentX - 30);
-                string sku = product.Sku.PadRight(15);
-                string qty = product.Quantity.ToString();
-                int nameWidth = Console.WindowWidth - contentX - 35;
-                Console.Write(name.Substring(0, Math.Min(name.Length, nameWidth)));
-                Console.Write(sku.Substring(0, Math.Min(sku.Length, 15)));
-                Console.Write(qty);
-                Console.ResetColor();
-            }
+            // Si no, dibuja la tabla de productos en la misma área.
+            DrawProductTable(panelX, panelY, panelWidth, panelHeight);
         }
-        _searchField.Draw();
+    }
+
+    /// <summary>
+    /// Lógica encapsulada para dibujar la tabla de productos.
+    /// </summary>
+    private void DrawProductTable(int x, int y, int width, int height)
+    {
+        int availableRows = height - 4;
+
+        Console.SetCursorPosition(x, y - 2);
+        Console.Write(new string(' ', width)); // Limpia área de mensaje
+
+        if (!_filteredProducts.Any())
+        {
+            string noResults = "No se encontraron resultados para su búsqueda.";
+            Console.SetCursorPosition(x, y - 2);
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.Write(noResults);
+            Console.ResetColor();
+            DrawBox(x, y, width, height);
+            return;
+        }
+
+        DrawBox(x, y, width, height);
+        Console.SetCursorPosition(x + 2, y + 1);
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.Write("Producto".PadRight(25));
+        Console.Write("SKU".PadRight(15));
+        Console.Write("Precio".PadRight(12));
+        Console.Write("Cant.");
+        Console.ResetColor();
+
+        for (int i = 0; i < availableRows; i++)
+        {
+            int productIndex = _scrollTop + i;
+            int currentLineY = y + 3 + i;
+            Console.SetCursorPosition(x + 2, currentLineY);
+            Console.Write(new string(' ', width - 4));
+            if (productIndex >= _filteredProducts.Count) continue;
+
+            var product = _filteredProducts[productIndex];
+            Console.SetCursorPosition(x + 2, currentLineY);
+            if (productIndex == _selectedIndex && _focusState == FocusState.Content)
+            {
+                Console.BackgroundColor = ConsoleColor.Gray;
+                Console.ForegroundColor = ConsoleColor.Black;
+            }
+
+            string name = product.Name.PadRight(25);
+            string sku = product.Sku.PadRight(15);
+            string price = $"{product.Price:C}".PadRight(12);
+            string qty = product.Quantity.ToString();
+
+            Console.Write(name.Substring(0, Math.Min(name.Length, 25)));
+            Console.Write(sku.Substring(0, Math.Min(sku.Length, 15)));
+            Console.Write(price.Substring(0, Math.Min(price.Length, 12)));
+            Console.Write(qty);
+            Console.ResetColor();
+        }
     }
 
     public IView HandleInput(ConsoleKeyInfo key)
     {
+        // Si el panel de detalles está abierto, cualquier tecla lo cierra.
+        if (_isViewingDetails)
+        {
+            _isViewingDetails = false;
+            return this;
+        }
+
         if (_focusState == FocusState.Navigation)
         {
             if (key.Key is ConsoleKey.Enter or ConsoleKey.RightArrow)
@@ -92,13 +139,26 @@ public class ShowProductsView : IView
             NavigationHelper.HandleMenuNavigation(key, ref _navigationIndex);
             return this;
         }
-        if (key.Key is ConsoleKey.Escape or ConsoleKey.LeftArrow) { _focusState = FocusState.Navigation; return this; }
-        if (_searchField.HandleKey(key))
+
+        if (key.Key is ConsoleKey.Escape or ConsoleKey.LeftArrow)
         {
-            _filteredProducts = _inventoryManager.SearchProducts(_searchField.Text).ToList();
-            _selectedIndex = -1; _scrollTop = 0;
+            _focusState = FocusState.Navigation;
             return this;
         }
+
+        // Al presionar Enter sobre un producto, se activa el modo de vista de detalles.
+        if (key.Key == ConsoleKey.Enter && _selectedIndex != -1)
+        {
+            _isViewingDetails = true;
+            return this;
+        }
+
+        if (_searchField.HandleKey(key))
+        {
+            UpdateFilteredList();
+            return this;
+        }
+
         int availableRows = Console.WindowHeight - 11 - 6;
         if (key.Key == ConsoleKey.UpArrow && _filteredProducts.Any())
         {

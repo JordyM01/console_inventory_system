@@ -44,7 +44,6 @@ public class AboutView : IView
                 if (nextView is AboutView) { _focusState = FocusState.Content; return this; }
                 return nextView;
             }
-            // CORRECCIÓN (CS1501): Se elimina el tercer argumento 'manager'.
             NavigationHelper.HandleMenuNavigation(key, ref _navigationIndex);
             return this;
         }

@@ -2,7 +2,6 @@ using static UiComponents;
 
 public class AddProductView : IView
 {
-    // ... (propiedades de la clase sin cambios)
     private readonly InventoryManager _inventoryManager;
     private Product _newProduct;
     private int _currentFieldIndex = 0;
@@ -21,11 +20,9 @@ public class AddProductView : IView
 
     public void Draw()
     {
-        // --- CORRECCIÓN ---
         // Se pasa el nombre de la vista ("Agregar producto") a DrawLayout para el marcador ">".
         UiComponents.DrawLayout("Agregar producto", _navigationIndex, _focusState);
         Console.CursorVisible = _focusState == FocusState.Content && _isEditing;
-        // ... (el resto del método Draw es idéntico)
         int contentX = 27, contentY = 3;
         Console.SetCursorPosition(contentX, contentY); Console.Write("/ Agregar producto");
         DrawFormField(contentX, 7, "Id", _newProduct.Id, false);
@@ -44,7 +41,6 @@ public class AddProductView : IView
         Console.ResetColor();
     }
 
-    // El resto de la clase no ha cambiado
     public IView HandleInput(ConsoleKeyInfo key)
     {
         if (_focusState == FocusState.Navigation)
