@@ -1,64 +1,65 @@
+using System;
 using System.Text;
 
-/// <summary>
-/// Representa un campo de texto interactivo y reutilizable en la consola.
-/// </summary>
-public class TextField
-{
-    private readonly int _x, _y, _width;
-    private readonly StringBuilder _textBuilder;
-    public string Text => _textBuilder.ToString();
+public enum ValidationState { Pristine, Valid, Invalid }
 
-    public TextField(int x, int y, int width, string initialText = "")
+/// <summary>
+/// Un componente de TUI para la entrada de texto interactiva.
+/// </summary>
+public class TextField : TuiComponent
+{
+    private StringBuilder _textBuilder;
+    public string Text { get => _textBuilder.ToString(); set => _textBuilder = new StringBuilder(value); }
+    public ValidationState State { get; set; } = ValidationState.Pristine;
+
+    public TextField(int x, int y, int width) : base(x, y, width, 3)
     {
-        _x = x;
-        _y = y;
-        _width = width;
-        _textBuilder = new StringBuilder(initialText);
+        _textBuilder = new StringBuilder();
     }
 
-    /// <summary>
-    /// Dibuja el campo de texto y su contenido, incluyendo el efecto de barrido.
-    /// </summary>
-    public void Draw()
+    public override void Draw(TuiRenderer renderer)
     {
-        UiComponents.DrawBox(_x, _y, _width, 3, ConsoleColor.DarkYellow);
+        ConsoleColor borderColor = State switch
+        {
+            ValidationState.Valid => ConsoleColor.Green,
+            ValidationState.Invalid => ConsoleColor.Red,
+            _ => HasFocus ? ConsoleColor.DarkYellow : ConsoleColor.Gray
+        };
 
+        // Dibuja el borde
+        renderer.Write(X, Y, "+" + new string('-', Width - 2) + "+", borderColor);
+        renderer.Write(X, Y + 1, "|", borderColor);
+        renderer.Write(X + Width - 1, Y + 1, "|", borderColor);
+        renderer.Write(X, Y + 2, "+" + new string('-', Width - 2) + "+", borderColor);
+
+        // Dibuja el texto con efecto de barrido
         string textToDisplay = Text;
-        int displayWidth = _width - 4; // Espacio para bordes y padding
-
+        int displayWidth = Width - 4;
         if (textToDisplay.Length > displayWidth)
         {
-            textToDisplay = "..." + textToDisplay.Substring(textToDisplay.Length - displayWidth + 3);
+            textToDisplay = "..." + textToDisplay.Substring(Text.Length - displayWidth + 3);
         }
 
-        Console.SetCursorPosition(_x + 2, _y + 1);
-        Console.Write(new string(' ', displayWidth)); // Limpia
-        Console.SetCursorPosition(_x + 2, _y + 1);
-        Console.Write(textToDisplay); // Escribe
+        renderer.Write(X + 2, Y + 1, textToDisplay.PadRight(displayWidth));
 
-        // Posiciona el cursor al final del texto para la entrada del usuario
-        Console.SetCursorPosition(_x + 2 + textToDisplay.Length, _y + 1);
+        if (HasFocus)
+        {
+            Console.CursorVisible = true;
+            Console.SetCursorPosition(X + 2 + textToDisplay.Length, Y + 1);
+        }
     }
 
-    /// <summary>
-    /// Procesa una tecla. Devuelve true si el texto cambió.
-    /// </summary>
-    public bool HandleKey(ConsoleKeyInfo key)
+    public override void HandleInput(ConsoleKeyInfo key)
     {
         if (key.Key == ConsoleKey.Backspace && _textBuilder.Length > 0)
         {
             _textBuilder.Length--;
-            return true;
         }
-        if (!char.IsControl(key.KeyChar))
+        else if (!char.IsControl(key.KeyChar))
         {
             _textBuilder.Append(key.KeyChar);
-            return true;
         }
-        return false;
     }
 }
-
 
 

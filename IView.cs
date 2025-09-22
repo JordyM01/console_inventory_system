@@ -4,13 +4,12 @@
 public enum FocusState { Navigation, Content }
 
 /// <summary>
-/// Interfaz para todas las Vistas.
-/// Define la estructura que toda clase de vista debe seguir.
+/// Define el "contrato" que todas las clases de vista deben seguir.
 /// </summary>
 public interface IView
 {
-    void Draw();
-    IView HandleInput(ConsoleKeyInfo key);
+    void Draw(TuiRenderer renderer);
+    IView? HandleInput(ConsoleKeyInfo key);
 }
 
 

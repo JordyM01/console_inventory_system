@@ -1,167 +1,94 @@
-using static UiComponents;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 /// <summary>
-/// Vista para buscar, mostrar y ver detalles de productos.
+/// Vista para mostrar productos, ahora compuesta por componentes de TUI.
 /// </summary>
 public class ShowProductsView : IView
 {
     private readonly InventoryManager _inventoryManager;
+    private readonly SideBar _sideBar;
+    private readonly Label _title;
     private readonly TextField _searchField;
-    private List<Product> _filteredProducts;
-    private int _selectedIndex = -1;
-    private int _scrollTop = 0;
-    private FocusState _focusState = FocusState.Content;
-    private int _navigationIndex = 2;
-    private bool _isViewingDetails = false;
+    private readonly Table _productTable;
+
+    private FocusState _focus = FocusState.Content;
 
     public ShowProductsView(InventoryManager manager)
     {
         _inventoryManager = manager;
-        _filteredProducts = _inventoryManager.Products.ToList();
-        _searchField = new TextField(27, 6, Console.WindowWidth - 27 - 3);
+
+        _sideBar = new SideBar(2, 5, 14, NavigationHelper.MenuItems.ToList(), "Mostrar productos");
+        _title = new Label(27, 3, "/ Mostrar productos", ConsoleColor.White);
+        _searchField = new TextField(27, 6, Console.WindowWidth - 29);
+        _productTable = new Table(27, 11, Console.WindowWidth - 29, Console.WindowHeight - 13);
+
+        UpdateTableContent();
+        UpdateFocus();
     }
 
-    private void UpdateFilteredList()
+    private void UpdateFocus()
     {
-        _filteredProducts = _inventoryManager.SearchProducts(_searchField.Text).ToList();
-        _selectedIndex = -1;
-        _scrollTop = 0;
+        _sideBar.HasFocus = _focus == FocusState.Navigation;
+        _searchField.HasFocus = _focus == FocusState.Content;
+        // La tabla podría tener su propio foco si se quisiera seleccionar items
+        _productTable.HasFocus = _focus == FocusState.Content;
     }
 
-    public void Draw()
+    private void UpdateTableContent()
     {
-        UiComponents.DrawLayout("Mostrar productos", _navigationIndex, _focusState);
-        int contentX = 27, contentY = 3;
-        Console.SetCursorPosition(contentX, contentY);
-        Console.Write("/ Mostrar productos");
-
-        int tableY = 11;
-        int tableHeight = Console.WindowHeight - tableY - 2;
-
-        if (_isViewingDetails && _selectedIndex > -1 && _selectedIndex < _filteredProducts.Count)
+        var products = _inventoryManager.SearchProducts(_searchField.Text);
+        _productTable.SetHeaders("Producto", "SKU", "Precio", "Cant.");
+        _productTable.ClearRows();
+        foreach (var p in products)
         {
-            UiComponents.DrawProductDetailsPanel(
-                _filteredProducts[_selectedIndex],
-                contentX, tableY, Console.WindowWidth - contentX - 2, tableHeight
-            );
+            _productTable.AddRow(p.Name, p.Sku, $"{p.Price:C}", p.Quantity.ToString());
         }
-        else
-        {
-            DrawProductTable(contentX, tableY, Console.WindowWidth - contentX - 2, tableHeight);
-        }
-
-        _searchField.Draw();
-        Console.CursorVisible = _focusState == FocusState.Content && !_isViewingDetails;
     }
 
-    private void DrawProductTable(int x, int y, int width, int height)
+    public void Draw(TuiRenderer renderer)
     {
-        int availableRows = (height - 4) / 2;
+        _sideBar.Draw(renderer);
+        _title.Draw(renderer);
+        _searchField.Draw(renderer);
+        _productTable.Draw(renderer);
+    }
 
-        Console.SetCursorPosition(x, y - 2);
-        Console.Write(new string(' ', width));
+    public IView? HandleInput(ConsoleKeyInfo key)
+    {
+        if (key.Key == ConsoleKey.LeftArrow && _focus == FocusState.Content) _focus = FocusState.Navigation;
+        else if (key.Key == ConsoleKey.RightArrow && _focus == FocusState.Navigation) _focus = FocusState.Content;
 
-        if (!_filteredProducts.Any())
+        UpdateFocus();
+
+        if (_focus == FocusState.Navigation)
         {
-            string noResults = "No se encontraron resultados para su búsqueda.";
-            Console.SetCursorPosition(x, y - 2);
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.Write(noResults);
-            Console.ResetColor();
-            DrawBox(x, y, width, height);
-            return;
-        }
-
-        DrawBox(x, y, width, height);
-        Console.SetCursorPosition(x + 2, y + 1);
-        Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.Write("Producto".PadRight(25));
-        Console.Write("SKU".PadRight(15));
-        Console.Write("Precio".PadRight(12));
-        Console.Write("Cant.");
-        Console.ResetColor();
-
-        for (int i = 0; i < availableRows; i++)
-        {
-            int productIndex = _scrollTop + i;
-            int currentLineY = y + 3 + (i * 2);
-
-            Console.SetCursorPosition(x + 2, currentLineY);
-            Console.Write(new string(' ', width - 4));
-            if (productIndex >= _filteredProducts.Count) continue;
-
-            var product = _filteredProducts[productIndex];
-            Console.SetCursorPosition(x + 2, currentLineY);
-            if (productIndex == _selectedIndex && _focusState == FocusState.Content)
+            _sideBar.HandleInput(key);
+            if (key.Key == ConsoleKey.Enter)
             {
-                Console.BackgroundColor = ConsoleColor.Gray;
-                Console.ForegroundColor = ConsoleColor.Black;
+                return NavigationHelper.GetViewByIndex(_sideBar.SelectedIndex, _inventoryManager);
+            }
+        }
+        else // FocusState.Content
+        {
+            // --- CORRECCIÓN CLAVE ---
+            // 1. Se guarda el texto de búsqueda *antes* de procesar la tecla.
+            string previousSearchTerm = _searchField.Text;
+
+            // 2. Se llama al método con el nombre correcto: 'HandleInput'.
+            _searchField.HandleInput(key);
+
+            // 3. Se comprueba si el texto ha cambiado. Si es así, se actualiza la tabla.
+            if (_searchField.Text != previousSearchTerm)
+            {
+                UpdateTableContent();
             }
 
-            string name = product.Name.PadRight(25);
-            string sku = product.Sku.PadRight(15);
-            string price = $"{product.Price:C}".PadRight(12);
-            string qty = product.Quantity.ToString();
-
-            Console.Write(name.Substring(0, Math.Min(name.Length, 25)));
-            Console.Write(sku.Substring(0, Math.Min(sku.Length, 15)));
-            Console.Write(price.Substring(0, Math.Min(price.Length, 12)));
-            Console.Write(qty);
-            Console.ResetColor();
-        }
-    }
-
-    public IView HandleInput(ConsoleKeyInfo key)
-    {
-        if (_isViewingDetails)
-        {
-            _isViewingDetails = false;
-            return this;
+            // Se pasa la entrada a la tabla para la navegación interna (arriba/abajo).
+            _productTable.HandleInput(key);
         }
 
-        if (_focusState == FocusState.Navigation)
-        {
-            if (key.Key is ConsoleKey.Enter or ConsoleKey.RightArrow)
-            {
-                var nextView = NavigationHelper.GetViewByIndex(_navigationIndex, _inventoryManager);
-                if (nextView is ShowProductsView) { _focusState = FocusState.Content; return this; }
-                return nextView;
-            }
-            NavigationHelper.HandleMenuNavigation(key, ref _navigationIndex);
-            return this;
-        }
-
-        if (key.Key is ConsoleKey.Escape or ConsoleKey.LeftArrow)
-        {
-            _focusState = FocusState.Navigation;
-            return this;
-        }
-
-        if (key.Key == ConsoleKey.Enter && _selectedIndex != -1)
-        {
-            _isViewingDetails = true;
-            return this;
-        }
-
-        if (_searchField.HandleKey(key))
-        {
-            UpdateFilteredList();
-            return this;
-        }
-
-        int availableRows = (Console.WindowHeight - 11 - 6) / 2;
-        if (key.Key == ConsoleKey.UpArrow && _filteredProducts.Any())
-        {
-            _selectedIndex = _selectedIndex == -1 ? _filteredProducts.Count - 1 : Math.Max(0, _selectedIndex - 1);
-            if (_selectedIndex < _scrollTop) _scrollTop = _selectedIndex;
-        }
-        if (key.Key == ConsoleKey.DownArrow && _filteredProducts.Any())
-        {
-            _selectedIndex = _selectedIndex == -1 ? 0 : Math.Min(_filteredProducts.Count - 1, _selectedIndex + 1);
-            if (_selectedIndex >= _scrollTop + availableRows) _scrollTop = _selectedIndex - availableRows + 1;
-        }
         return this;
     }
 }
-
-
