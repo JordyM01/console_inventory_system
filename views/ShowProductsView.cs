@@ -10,17 +10,21 @@ public class ShowProductsView : IView
     private readonly InventoryManager _inventoryManager;
     private readonly SideBar _sideBar;
     private readonly Label _title;
+    private readonly Frame _frame;
     private readonly TextField _searchField;
     private readonly Table _productTable;
 
     private FocusState _focus = FocusState.Content;
 
-    public ShowProductsView(InventoryManager manager)
+    public ShowProductsView(InventoryManager manager, int lasNavIndex = 2)
     {
         _inventoryManager = manager;
 
+        _frame = new Frame(0, 0, Console.WindowWidth - 1, Console.WindowHeight - 1);
         _sideBar = new SideBar(2, 5, 14, NavigationHelper.MenuItems.ToList(), "Mostrar productos");
-        _title = new Label(27, 3, "/ Mostrar productos", ConsoleColor.White);
+        _sideBar.SelectedIndex = lasNavIndex;
+
+        _title = new Label(27, 3, "/ Mostrar productos", ConsoleColor.Green);
         _searchField = new TextField(27, 6, Console.WindowWidth - 29);
         _productTable = new Table(27, 11, Console.WindowWidth - 29, Console.WindowHeight - 13);
 
@@ -49,6 +53,7 @@ public class ShowProductsView : IView
 
     public void Draw(TuiRenderer renderer)
     {
+        _frame.Draw(renderer);
         _sideBar.Draw(renderer);
         _title.Draw(renderer);
         _searchField.Draw(renderer);

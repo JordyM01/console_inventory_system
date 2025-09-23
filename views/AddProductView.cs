@@ -7,20 +7,26 @@ using System.Linq;
 /// </summary>
 public class AddProductView : IView
 {
+    private readonly SideBar _sideBar;
+    private readonly Frame _frame;
+    private readonly Label _title;
+    private int _focusIndex = 1;
+
     private readonly InventoryManager _inventoryManager;
     private readonly List<TuiComponent> _components = new List<TuiComponent>();
     private readonly List<TuiComponent> _focusableComponents = new List<TuiComponent>();
-    private int _focusIndex = 0;
 
-    public AddProductView(InventoryManager manager)
+    public AddProductView(InventoryManager manager, int lastNavIndex = 1)
     {
         _inventoryManager = manager;
 
         // --- Composición de la Vista ---
         // Se instancian todos los componentes visuales
-        var sideBar = new SideBar(2, 5, 14, NavigationHelper.MenuItems.ToList(), "Agregar producto");
-        var frame = new Frame(0, 0, Console.WindowWidth - 1, Console.WindowHeight - 1);
-        var title = new Label(27, 4, "/ Agregar producto", ConsoleColor.White);
+        _sideBar = new SideBar(2, 5, 14, NavigationHelper.MenuItems.ToList(), "Agregar producto");
+        _sideBar.SelectedIndex = lastNavIndex;
+
+        _frame = new Frame(0, 0, Console.WindowWidth - 1, Console.WindowHeight - 1);
+        _title = new Label(27, 4, "/ Agregar producto", ConsoleColor.Green);
 
         // Etiquetas
         _components.Add(new Label(30, 7, "Id"));
@@ -48,13 +54,13 @@ public class AddProductView : IView
 
         // Lista de todos los componentes para dibujarlos fácilmente
         _components.AddRange(new TuiComponent[] {
-            frame, sideBar, title, idField, skuField, productField, qtyField,
+            _frame, _sideBar, _title, idField, skuField, productField, qtyField,
             categoryField, minQtyField, descField, priceField, cancelButton, saveButton
         });
 
         // Lista de componentes que pueden recibir el foco del usuario
         _focusableComponents.AddRange(new TuiComponent[] {
-            sideBar, skuField, productField, qtyField, categoryField,
+            _sideBar, skuField, productField, qtyField, categoryField,
             minQtyField, descField, priceField, cancelButton, saveButton
         });
 

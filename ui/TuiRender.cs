@@ -1,4 +1,3 @@
-// FilePath: ui/TuiRenderer.cs
 using System;
 using System.Text;
 

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
-/// Un componente que gestiona un menú de navegación lateral.
+/// Componente que gestiona un menú de navegación lateral.
 /// </summary>
 public class SideBar : TuiComponent
 {
@@ -33,8 +33,11 @@ public class SideBar : TuiComponent
                 bg = ConsoleColor.Cyan;
                 textToDraw = " " + textToDraw;
             }
-
+            // Se escribe primero una línea de fondo para limpiar cualquier artefacto visual
+            // de la renderización anterior, y luego se escribe el texto encima.
+            renderer.Write(X, Y + i * 2, new string(' ', Width - X), bg: ConsoleColor.Black);
             renderer.Write(X, Y + i * 2, textToDraw.PadRight(Width - X), fg, bg);
+
         }
     }
 
