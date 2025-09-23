@@ -8,7 +8,6 @@ public static class NavigationHelper
     /// <summary>
     /// Procesa las teclas de flecha arriba/abajo para cambiar el índice de navegación.
     /// </summary>
-    // CORRECCIÓN (CS1501): La firma del método ahora solo acepta los 2 parámetros necesarios.
     public static void HandleMenuNavigation(ConsoleKeyInfo key, ref int navigationIndex)
     {
         switch (key.Key)
@@ -25,7 +24,6 @@ public static class NavigationHelper
     /// <summary>
     /// Devuelve una nueva instancia de una vista basada en su índice en el menú.
     /// </summary>
-    // CORRECCIÓN (CS8603): Se añade el '?' para indicar que este método puede devolver null legítimamente.
     public static IView? GetViewByIndex(int index, InventoryManager manager)
     {
         return index switch

@@ -7,7 +7,6 @@ using System.Text.Json.Serialization; // Necesario para los atributos de mapeo d
 /// </summary>
 public record Product(
     // El atributo [JsonPropertyName] le dice al serializador:
-    // "Cuando veas la propiedad 'ID' en el JSON, pon su valor en la propiedad 'Id' de esta clase."
     [property: JsonPropertyName("ID")] string Id,
     [property: JsonPropertyName("SKU")] string Sku,
     [property: JsonPropertyName("Producto")] string Name,

@@ -72,7 +72,6 @@ public class ShowProductsView : IView
         }
         else // FocusState.Content
         {
-            // --- CORRECCIÓN CLAVE ---
             // 1. Se guarda el texto de búsqueda *antes* de procesar la tecla.
             string previousSearchTerm = _searchField.Text;
 
