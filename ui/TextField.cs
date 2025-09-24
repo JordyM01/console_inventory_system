@@ -12,9 +12,21 @@ public class TextField : TuiComponent
     public string Text { get => _textBuilder.ToString(); set => _textBuilder = new StringBuilder(value); }
     public ValidationState State { get; set; } = ValidationState.Pristine;
 
+    // Permite que un campo de texto sea de solo lectura (ej. para el campo Id).
+    public bool IsEditable { get; set; } = true;
+
     public TextField(int x, int y, int width) : base(x, y, width, 3)
     {
         _textBuilder = new StringBuilder();
+    }
+
+    /// <summary>
+    /// Limpia el contenido y el estado de validación del campo.
+    /// </summary>
+    public void Clear()
+    {
+        _textBuilder.Clear();
+        State = ValidationState.Pristine;
     }
 
     public override void Draw(TuiRenderer renderer)
@@ -25,6 +37,8 @@ public class TextField : TuiComponent
             ValidationState.Invalid => ConsoleColor.Red,
             _ => HasFocus ? ConsoleColor.DarkYellow : ConsoleColor.Gray
         };
+
+        new Frame(X, Y, Width, Height).Draw(renderer);
 
         // Dibuja el borde
         renderer.Write(X, Y, "+" + new string('-', Width - 2) + "+", borderColor);
@@ -42,7 +56,7 @@ public class TextField : TuiComponent
 
         renderer.Write(X + 2, Y + 1, textToDisplay.PadRight(displayWidth));
 
-        if (HasFocus)
+        if (HasFocus && IsEditable)
         {
             Console.CursorVisible = true;
             Console.SetCursorPosition(X + 2 + textToDisplay.Length, Y + 1);
@@ -51,13 +65,17 @@ public class TextField : TuiComponent
 
     public override void HandleInput(ConsoleKeyInfo key)
     {
-        if (key.Key == ConsoleKey.Backspace && _textBuilder.Length > 0)
+        // Si el campo no es editable, no procesa ninguna entrada
+        if (!IsEditable) return;
+
+        if (key.Key == ConsoleKey.Enter)
         {
-            _textBuilder.Length--;
-        }
-        else if (!char.IsControl(key.KeyChar))
-        {
-            _textBuilder.Append(key.KeyChar);
+            var inputHandler = new InputHandler(X + 2, Y + 1, Width - 4, Text, InputType.Text);
+            var (newValue, result) = inputHandler.ProcessInput();
+            if (result != EditResult.Canceled)
+            {
+                Text = newValue;
+            }
         }
     }
 }

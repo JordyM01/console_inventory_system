@@ -7,12 +7,19 @@ using System.Globalization;
 public class NumericField : TuiComponent
 {
     public decimal Value { get; set; }
-    private bool _isCurrency;
+    public bool IsCurrency { get; }
+    public ValidationState State { get; set; } = ValidationState.Pristine;
 
     public NumericField(int x, int y, int width, bool isCurrency = false)
         : base(x, y, width, 3)
     {
-        _isCurrency = isCurrency;
+        IsCurrency = isCurrency;
+    }
+
+    public void Clear()
+    {
+        Value = 0;
+        State = ValidationState.Pristine;
     }
 
     /// <summary>
@@ -20,16 +27,27 @@ public class NumericField : TuiComponent
     /// </summary>
     public override void Draw(TuiRenderer renderer)
     {
-        ConsoleColor borderColor = HasFocus ? ConsoleColor.DarkYellow : ConsoleColor.Gray;
+        ConsoleColor borderColor = State switch
+        {
+            ValidationState.Valid => ConsoleColor.Green,
+            ValidationState.Invalid => ConsoleColor.Red,
+            _ => HasFocus ? ConsoleColor.DarkYellow : ConsoleColor.Gray
+        };
 
-        // Dibuja los componentes del campo
         renderer.Write(X, Y + 1, "[+]", borderColor);
         new Frame(X + 4, Y, Width - 8, 3).Draw(renderer);
         renderer.Write(X + Width - 3, Y + 1, "[-]", borderColor);
 
-        // Formatea y dibuja el valor
-        string displayValue = _isCurrency ? Value.ToString("C", new CultureInfo("es-CR")) : Value.ToString();
+        string displayValue = IsCurrency
+            ? Value.ToString("C", new CultureInfo("es-CR"))
+            : Value.ToString();
+
         renderer.Write(X + 6, Y + 1, displayValue.PadLeft(Width - 12));
+
+        if (HasFocus)
+        {
+            Console.SetCursorPosition(X + 6 + displayValue.Length, Y + 1);
+        }
     }
 
     /// <summary>
@@ -37,8 +55,6 @@ public class NumericField : TuiComponent
     /// </summary>
     public override void HandleInput(ConsoleKeyInfo key)
     {
-        // La lógica de edición de texto se manejaría con una clase como InputHandler
-        // aquí, por simplicidad, solo se implementa el incremento/decremento.
         if (key.Key == ConsoleKey.OemPlus || key.Key == ConsoleKey.Add)
         {
             Value++;
@@ -46,6 +62,17 @@ public class NumericField : TuiComponent
         else if (key.Key == ConsoleKey.OemMinus || key.Key == ConsoleKey.Subtract)
         {
             if (Value > 0) Value--;
+        }
+        else if (key.Key == ConsoleKey.Enter)
+        {
+            // Al presionar Enter, se activa un InputHandler para edición directa.
+            var inputHandler = new InputHandler(X + 6, Y + 1, Width - 12, Value.ToString(), IsCurrency ? InputType.Decimal : InputType.Integer);
+            var (newValue, result) = inputHandler.ProcessInput();
+            if (result != EditResult.Canceled)
+            {
+                decimal.TryParse(newValue, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal parsedValue);
+                Value = parsedValue;
+            }
         }
     }
 }
