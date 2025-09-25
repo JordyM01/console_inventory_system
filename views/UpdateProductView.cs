@@ -15,10 +15,6 @@ public class UpdateProductView : IView
     // --- Estado de la Vista Principal ---
     private FocusState _focusState = FocusState.Content;
     private int _navigationIndex = 3;
-    /// <summary>
-    /// Columna seleccionada en la tabla para acciones. 0: [-], 1: Nombre, 2: [+]
-    /// </summary>
-    private int _selectedColumn = 1;
 
     /// <summary>
     /// El formulario de edición. Es no nulo solo cuando el modo de edición está activo.
@@ -87,21 +83,11 @@ public class UpdateProductView : IView
         new Label(27, 3, "/ Actualizar producto", ConsoleColor.Cyan).Draw(renderer);
         _searchField.Draw(renderer);
 
-        // Solo dibuja la tabla y el cursor de la tabla si el formulario de edición NO está activo.
+        // Solo dibuja la tabla si el formulario de edición NO está activo.
         if (_editForm == null)
         {
             _productTable.Draw(renderer);
             Console.CursorVisible = _searchField.HasFocus;
-
-            // Dibuja un "cursor" visual para indicar qué columna está seleccionada (-, Nombre, +)
-            var selectedRow = _productTable.GetSelectedRow();
-            if (selectedRow != null && _productTable.HasFocus)
-            {
-                int rowY = _productTable.Y + 2 + (_productTable.SelectedIndex - _productTable.ScrollTop);
-                int quantityX = _productTable.X + 2 + _productTable.Columns[0].Width;
-                if (_selectedColumn == 0) renderer.Write(quantityX + 2, rowY, "-", ConsoleColor.Black, ConsoleColor.Yellow);
-                if (_selectedColumn == 2) renderer.Write(quantityX + 16, rowY, "+", ConsoleColor.Black, ConsoleColor.Yellow);
-            }
         }
         else
         {
@@ -133,30 +119,56 @@ public class UpdateProductView : IView
         }
         else // FocusState.Content
         {
-            // --- CORRECCIÓN 2: Navegación al menú lateral ---
-            if (key.Key == ConsoleKey.Escape || (key.Key == ConsoleKey.LeftArrow && _selectedColumn == 0))
+            var selectedRow = _productTable.GetSelectedRow();
+            var product = selectedRow?.Tag as Product;
+
+            // --- LÓGICA DE MANEJO DE INPUT REFACTORIZADA ---
+            switch (key.Key)
             {
-                _focusState = FocusState.Navigation;
-            }
-            else if (key.Key is ConsoleKey.LeftArrow && _selectedColumn > 0)
-            {
-                _selectedColumn--;
-            }
-            else if (key.Key is ConsoleKey.RightArrow && _selectedColumn < 2)
-            {
-                _selectedColumn++;
-            }
-            else if (key.Key == ConsoleKey.Enter)
-            {
-                HandleEnterAction();
-            }
-            else if (_searchField.HandleKey(key))
-            {
-                UpdateTableContent();
-            }
-            else
-            {
-                _productTable.HandleInput(key);
+                // Navegación al Sidebar
+                case ConsoleKey.Escape:
+                case ConsoleKey.LeftArrow:
+                    _focusState = FocusState.Navigation;
+                    break;
+
+                // Acción de Enter siempre abre el modal
+                case ConsoleKey.Enter:
+                    HandleEnterAction();
+                    break;
+
+                // Modificación rápida de Cantidad
+                case ConsoleKey.OemPlus:
+                case ConsoleKey.Add:
+                    if (product != null)
+                    {
+                        _inventoryManager.UpdateProductQuantity(product.Id, 1);
+                        UpdateTableContent();
+                    }
+                    break;
+                case ConsoleKey.OemMinus:
+                case ConsoleKey.Subtract:
+                    if (product != null)
+                    {
+                        _inventoryManager.UpdateProductQuantity(product.Id, -1);
+                        UpdateTableContent();
+                    }
+                    break;
+
+                // Búsqueda o navegación de tabla
+                default:
+                    // La flecha derecha no hace nada y se ignora
+                    if (key.Key == ConsoleKey.RightArrow) break;
+
+                    if (_searchField.HandleKey(key))
+                    {
+                        UpdateTableContent();
+                    }
+                    else
+                    {
+                        // Se pasa la entrada a la tabla para el movimiento de arriba/abajo
+                        _productTable.HandleInput(key);
+                    }
+                    break;
             }
         }
         UpdateFocus();
@@ -165,42 +177,34 @@ public class UpdateProductView : IView
 
     /// <summary>
     /// Determina qué acción realizar al presionar Enter en la tabla principal.
-    /// Puede ser decrementar/incrementar cantidad o abrir el modal de edición.
+    /// Ahora siempre abre el modal de edición para el producto seleccionado.
     /// </summary>
     private void HandleEnterAction()
     {
         var selectedRow = _productTable.GetSelectedRow();
         if (selectedRow?.Tag is not Product product) return;
 
-        if (_selectedColumn == 0) _inventoryManager.UpdateProductQuantity(product.Id, -1);
-        else if (_selectedColumn == 2) _inventoryManager.UpdateProductQuantity(product.Id, 1);
-        else
+        // Activa el modo de edición creando una instancia del formulario en el área de contenido
+        _editForm = new ProductForm(27, 7, Console.WindowWidth - 30, Console.WindowHeight - 10);
+        _editForm.LoadProduct(product);
+
+        // Define qué hacer cuando el formulario se guarda
+        _editForm.OnSave = (updatedProduct) =>
         {
-            // Activa el modo de edición creando una instancia del formulario en el área de contenido
-            _editForm = new ProductForm(27, 7, Console.WindowWidth - 30, Console.WindowHeight - 10);
-            _editForm.LoadProduct(product);
-
-            // Define qué hacer cuando el formulario se guarda
-            _editForm.OnSave = (updatedProduct) =>
-            {
-                _inventoryManager.UpdateProduct(updatedProduct);
-                _editForm.HasFocus = false; // --- CORRECCIÓN 1: Quitar foco ---
-                _editForm = null; // Cierra el formulario
-                UpdateTableContent();
-                UpdateFocus();
-            };
-            // Define qué hacer cuando el formulario se cancela
-            _editForm.OnCancel = () =>
-            {
-                _editForm.HasFocus = false; // --- CORRECCIÓN 1: Quitar foco ---
-                _editForm = null; // Cierra el formulario
-                UpdateFocus();
-            };
+            _inventoryManager.UpdateProduct(updatedProduct);
+            _editForm.HasFocus = false;
+            _editForm = null; // Cierra el formulario
+            UpdateTableContent();
             UpdateFocus();
-        }
-
-        // Actualiza la tabla inmediatamente si se cambió la cantidad
-        if (_selectedColumn != 1) UpdateTableContent();
+        };
+        // Define qué hacer cuando el formulario se cancela
+        _editForm.OnCancel = () =>
+        {
+            _editForm.HasFocus = false;
+            _editForm = null; // Cierra el formulario
+            UpdateFocus();
+        };
+        UpdateFocus();
     }
 
     /// <summary>
@@ -220,5 +224,4 @@ public class UpdateProductView : IView
         }
     }
 }
-
 
