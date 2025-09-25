@@ -80,7 +80,7 @@ public class UpdateProductView : IView
     {
         new Frame(0, 0, Console.WindowWidth - 1, Console.WindowHeight - 1).Draw(renderer);
         _sideBar.Draw(renderer);
-        new Label(27, 3, "/ Actualizar producto", ConsoleColor.Cyan).Draw(renderer);
+        new Label(27, 3, "/ Actualizar producto", ConsoleColor.Yellow).Draw(renderer);
         _searchField.Draw(renderer);
 
         // Solo dibuja la tabla si el formulario de edición NO está activo.

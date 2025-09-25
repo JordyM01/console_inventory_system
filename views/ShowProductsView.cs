@@ -80,7 +80,7 @@ public class ShowProductsView : IView
         // Dibuja los componentes base
         new Frame(0, 0, Console.WindowWidth - 1, Console.WindowHeight - 1).Draw(renderer);
         _sideBar.Draw(renderer);
-        new Label(27, 3, "/ Mostrar productos", ConsoleColor.Green).Draw(renderer);
+        new Label(27, 3, "/ Mostrar productos", ConsoleColor.Magenta).Draw(renderer);
         _searchField.Draw(renderer);
 
         Console.CursorVisible = _searchField.HasFocus;
