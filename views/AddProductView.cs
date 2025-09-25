@@ -14,6 +14,7 @@ public class AddProductView : IView
     private readonly SideBar _sideBar;
     private int _focusIndex = 1;
     private int _scrollTop = 0;
+
     private FocusState _focusState = FocusState.Content;
     private int _navigationIndex = 1;
     private string _statusMessage = "";

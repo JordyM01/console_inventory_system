@@ -23,14 +23,15 @@ public class MainMenuView : IView
         int framePadding = 3;
         int titleFrameHeight = 5;
         int titleY = framePadding + 2;
+        string title = "Sistema de gestion de inventario en consola";
 
         // Componentes estáticos (se añaden a la lista general para ser dibujados)
         _components.Add(new Frame(0, 0, Console.WindowWidth - 1, Console.WindowHeight - 1));
         _components.Add(new Frame(framePadding, framePadding, Console.WindowWidth - (framePadding * 2), titleFrameHeight));
         _components.Add(new Label(
-            (Console.WindowWidth - "Sistema de gestion de inventario en consola".Length) / 2,
+            (Console.WindowWidth - title.Length) / 2,
             titleY,
-            "Sistema de gestion de inventario en consola",
+            title,
             ConsoleColor.Green
         ));
 

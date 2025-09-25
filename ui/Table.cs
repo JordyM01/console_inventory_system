@@ -6,15 +6,16 @@ using System.Collections.Generic;
 /// </summary>
 public class Table : TuiComponent
 {
-    private List<string> _headers = new List<string>();
+    private List<Label> _headers = new List<Label>();
     private List<string[]> _rows = new List<string[]>();
     public int SelectedIndex { get; set; } = -1;
+    private int _scrollTop = 0; // Indice del primer producto visible en la tabla
 
     public Table(int x, int y, int width, int height) : base(x, y, width, height) { }
 
-    public void SetHeaders(params string[] headers)
+    public void SetHeaders(List<Label> headers)
     {
-        _headers = new List<string>(headers);
+        _headers = headers;
     }
 
     public void AddRow(params string[] rowData)
@@ -35,16 +36,23 @@ public class Table : TuiComponent
         // Dibuja las cabeceras
         if (_headers.Count > 0)
         {
-            int colWidth = (Width - 2) / _headers.Count;
             for (int i = 0; i < _headers.Count; i++)
             {
-                renderer.Write(X + 1 + (i * colWidth), Y + 1, _headers[i], ConsoleColor.Yellow);
+                _headers[i].Draw(renderer);
             }
         }
 
+        int availableRows = (Height - 3) / 2; // Espacio para el borde y espaciado de linea
+
         // Dibuja las filas
-        for (int i = 0; i < _rows.Count && i < Height - 3; i++)
+        for (int i = 0; i < availableRows; i++)
         {
+            int productIndex = _scrollTop + i;
+            int currentLineY = Y + 3 + (i * 2); // Deja una linea en blanco entre cada fila
+
+            // Limpia la linea anter de dibujar
+            renderer.Write(X + 1, currentLineY, new string(' ', Width - 2));
+
             var row = _rows[i];
             int colWidth = (Width - 2) / row.Length;
             for (int j = 0; j < row.Length; j++)

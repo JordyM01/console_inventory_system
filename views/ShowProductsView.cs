@@ -19,7 +19,7 @@ public class ShowProductsView : IView
     private FocusState _focusState = FocusState.Content;
     private int _navigationIndex = 2; // Indice de vista Mostrar productos
 
-    // Nuevo estado para controlar si se muestra la tabla o los detalles
+    // Estado para controlar si se muestra la tabla o los detalles
     private bool _isViewingDetails = false;
 
     public ShowProductsView(InventoryManager manager, int lastNavIndex = 2)
@@ -30,6 +30,7 @@ public class ShowProductsView : IView
         _navigationIndex = lastNavIndex;
         _sideBar = new SideBar(2, 5, 14, NavigationHelper.MenuItems.ToList(), "Mostrar productos") { SelectedIndex = _navigationIndex };
         _searchField = new SearchField(27, 6, Console.WindowWidth - 29);
+
         UpdateFocus();
     }
 
