@@ -8,29 +8,34 @@ using System.Linq;
 public class ShowProductsView : IView
 {
     private readonly InventoryManager _inventoryManager;
-    private readonly SearchField _searchField;
     private readonly SideBar _sideBar;
+    private readonly SearchField _searchField;
+    private readonly Table _productTable; // <-- Usamos el componente Table reutilizable
 
-    private List<Product> _filteredProducts;
-    private int _selectedIndex = -1;
-    private int _scrollTop = 0; // Indice del primer producto visible en la tabla
-
-    // Estado para controlar el foco entre el menu y el contenido
+    // --- Variables de Estado de la Vista ---
     private FocusState _focusState = FocusState.Content;
-    private int _navigationIndex = 2; // Indice de vista Mostrar productos
-
-    // Estado para controlar si se muestra la tabla o los detalles
     private bool _isViewingDetails = false;
+    private int _navigationIndex = 2; // Índice de "Mostrar productos"
 
     public ShowProductsView(InventoryManager manager, int lastNavIndex = 2)
     {
         _inventoryManager = manager;
-        _filteredProducts = _inventoryManager.Products.ToList();
-
         _navigationIndex = lastNavIndex;
+
+        // --- Inicialización de Componentes de UI ---
         _sideBar = new SideBar(2, 5, 14, NavigationHelper.MenuItems.ToList(), "Mostrar productos") { SelectedIndex = _navigationIndex };
         _searchField = new SearchField(27, 6, Console.WindowWidth - 29);
+        _productTable = new Table(27, 11, Console.WindowWidth - 29, Console.WindowHeight - 13);
 
+        // --- Configuración de la Tabla ---
+        _productTable.SetColumns(
+            new ColumnDefinition("Producto", 25),
+            new ColumnDefinition("SKU", 15),
+            new ColumnDefinition("Precio", 12),
+            new ColumnDefinition("Cant.", 10)
+        );
+
+        UpdateTableContent();
         UpdateFocus();
     }
 
@@ -40,110 +45,71 @@ public class ShowProductsView : IView
     private void UpdateFocus()
     {
         _sideBar.HasFocus = _focusState == FocusState.Navigation;
-        _searchField.HasFocus = _focusState == FocusState.Content;
+        _searchField.HasFocus = _focusState == FocusState.Content && !_isViewingDetails;
+        _productTable.HasFocus = _focusState == FocusState.Content && !_isViewingDetails;
     }
 
-    private void UpdateFilteredList()
+    /// <summary>
+    /// Busca productos basados en el texto del SearchField y puebla la Tabla.
+    /// </summary>
+    private void UpdateTableContent()
     {
-        _filteredProducts = _inventoryManager.SearchProducts(_searchField.Text).ToList();
-        _selectedIndex = _filteredProducts.Any() ? 0 : -1; // Selecciona el primero si hay resultados
-        _scrollTop = 0;
+        var products = _inventoryManager.SearchProducts(_searchField.Text).ToList();
+        _productTable.ClearRows();
+
+        foreach (var p in products)
+        {
+            var row = new TableRow(new[] {
+                p.Name,
+                p.Sku,
+                $"{p.Price:C}",
+                p.Quantity.ToString()
+            });
+            row.Tag = p; // Guardamos el objeto Product completo en la fila
+            _productTable.AddRow(row);
+        }
+
+        if (products.Any())
+        {
+            _productTable.SelectedIndex = 0;
+        }
     }
 
     public void Draw(TuiRenderer renderer)
     {
-        // --- DIBUJADO DE COMPONENTES ESTÁTICOS ---
+        // Dibuja los componentes base
         new Frame(0, 0, Console.WindowWidth - 1, Console.WindowHeight - 1).Draw(renderer);
-        // Se crea un SideBar temporalmente para el dibujado
         _sideBar.Draw(renderer);
         new Label(27, 3, "/ Mostrar productos", ConsoleColor.Green).Draw(renderer);
-
         _searchField.Draw(renderer);
 
-        if (!_searchField.HasFocus)
-        {
-            Console.CursorVisible = false;
-        }
+        Console.CursorVisible = _searchField.HasFocus;
 
         // --- DIBUJADO CONDICIONAL: TABLA O DETALLES ---
-        int contentAreaX = 27;
-        int contentAreaY = 11;
-        int contentAreaWidth = Console.WindowWidth - 29;
-        int contentAreaHeight = Console.WindowHeight - 13;
-
-        if (_isViewingDetails && _selectedIndex > -1)
+        if (_isViewingDetails)
         {
-            var product = _filteredProducts[_selectedIndex];
-            DrawProductDetails(renderer, product, contentAreaX, contentAreaY, contentAreaWidth, contentAreaHeight);
+            var selectedRow = _productTable.GetSelectedRow();
+            var product = selectedRow?.Tag as Product;
+            if (product != null)
+            {
+                // Coordenadas del área de contenido
+                int contentAreaX = 27;
+                int contentAreaY = 11;
+                int contentAreaWidth = Console.WindowWidth - 29;
+                int contentAreaHeight = Console.WindowHeight - 13;
+                DrawProductDetails(renderer, product, contentAreaX, contentAreaY, contentAreaWidth, contentAreaHeight);
+            }
         }
         else
         {
-            DrawProductTable(renderer, contentAreaX, contentAreaY, contentAreaWidth, contentAreaHeight);
+            // La tabla se encarga de su propio dibujado
+            _productTable.Draw(renderer);
         }
-    }
-
-    private void DrawProductTable(TuiRenderer renderer, int x, int y, int width, int height)
-    {
-        new Frame(x, y, width, height).Draw(renderer);
-
-        // Dibuja la cabecera
-        renderer.Write(x + 2, y + 1, "Producto".PadRight(25), ConsoleColor.Yellow);
-        renderer.Write(x + 27, y + 1, "SKU".PadRight(15), ConsoleColor.Yellow);
-        renderer.Write(x + 42, y + 1, "Precio".PadRight(12), ConsoleColor.Yellow);
-        renderer.Write(x + 54, y + 1, "Cant.", ConsoleColor.Yellow);
-
-        int availableRows = (height - 3) / 2; // Espacio para el borde y espaciado de línea
-
-        for (int i = 0; i < availableRows; i++)
-        {
-            int productIndex = _scrollTop + i;
-            int currentLineY = y + 3 + (i * 2); // Deja una línea en blanco entre cada producto
-
-            // Limpia la línea antes de dibujar
-            renderer.Write(x + 1, currentLineY, new string(' ', width - 2));
-
-            if (productIndex < _filteredProducts.Count)
-            {
-                var p = _filteredProducts[productIndex];
-                var fg = ConsoleColor.White;
-                var bg = ConsoleColor.Black;
-
-                if (productIndex == _selectedIndex)
-                {
-                    fg = ConsoleColor.Black;
-                    bg = ConsoleColor.Gray;
-                }
-
-                // Dibuja los datos del producto
-                renderer.Write(x + 2, currentLineY, p.Name.PadRight(25).Substring(0, 25), fg, bg);
-                renderer.Write(x + 27, currentLineY, p.Sku.PadRight(15).Substring(0, 15), fg, bg);
-                renderer.Write(x + 42, currentLineY, $"{p.Price:C}".PadRight(12).Substring(0, 12), fg, bg);
-                renderer.Write(x + 54, currentLineY, p.Quantity.ToString().PadRight(5), fg, bg);
-            }
-        }
-    }
-
-    private void DrawProductDetails(TuiRenderer renderer, Product p, int x, int y, int width, int height)
-    {
-        // Limpia el área y dibuja el marco
-        renderer.Write(x, y, new string(' ', width * height));
-        new Frame(x, y, width, height).Draw(renderer);
-
-        renderer.Write(x + 2, y + 2, $"ID:          {p.Id}");
-        renderer.Write(x + 2, y + 3, $"SKU:         {p.Sku}");
-        renderer.Write(x + 2, y + 4, $"Producto:    {p.Name}");
-        renderer.Write(x + 2, y + 5, $"Categoría:   {p.Category}");
-        renderer.Write(x + 2, y + 6, $"Cantidad:    {p.Quantity}");
-        renderer.Write(x + 2, y + 7, $"Cant. Mín:   {p.MinQuantity}");
-        renderer.Write(x + 2, y + 8, $"Precio:      {p.Price:C}");
-        renderer.Write(x + 2, y + 10, $"Descripción: {p.Description}");
-
-        string closeMessage = "[Presione cualquier tecla para volver]";
-        renderer.Write(x + (width - closeMessage.Length) / 2, y + height - 2, closeMessage, ConsoleColor.Yellow);
     }
 
     public IView? HandleInput(ConsoleKeyInfo key)
     {
+        // Si estamos viendo detalles, cualquier tecla nos devuelve a la tabla.
         if (_isViewingDetails)
         {
             _isViewingDetails = false;
@@ -169,7 +135,6 @@ public class ShowProductsView : IView
         }
         else // FocusState.Content
         {
-            // Pasa el foco al menú lateral
             if (key.Key is ConsoleKey.Escape or ConsoleKey.LeftArrow)
             {
                 _focusState = FocusState.Navigation;
@@ -177,30 +142,41 @@ public class ShowProductsView : IView
                 return this;
             }
 
-            // Pasa la tecla al campo de búsqueda. Si la usa, actualiza la lista.
+            // Si el campo de búsqueda usa la tecla, actualiza la tabla.
             if (_searchField.HandleKey(key))
             {
-                UpdateFilteredList();
+                UpdateTableContent();
                 return this;
             }
 
-            // Si no fue usada por la búsqueda, procesa la navegación de la tabla.
-            int availableRows = (Console.WindowHeight - 13 - 3) / 2;
-            switch (key.Key)
+            // Si no, la tecla es para la tabla.
+            _productTable.HandleInput(key); // Delegamos la navegación a la tabla
+
+            if (key.Key == ConsoleKey.Enter && _productTable.GetSelectedRow() != null)
             {
-                case ConsoleKey.UpArrow:
-                    if (_selectedIndex > 0) _selectedIndex--;
-                    if (_selectedIndex < _scrollTop) _scrollTop = _selectedIndex;
-                    break;
-                case ConsoleKey.DownArrow:
-                    if (_selectedIndex < _filteredProducts.Count - 1) _selectedIndex++;
-                    if (_selectedIndex >= _scrollTop + availableRows) _scrollTop++;
-                    break;
-                case ConsoleKey.Enter:
-                    if (_selectedIndex != -1) _isViewingDetails = true;
-                    break;
+                _isViewingDetails = true; // Cambiamos al modo de vista de detalles
             }
         }
         return this;
+    }
+
+    /// <summary>
+    /// Dibuja el panel de detalles para un producto específico.
+    /// </summary>
+    private void DrawProductDetails(TuiRenderer renderer, Product p, int x, int y, int width, int height)
+    {
+        new Frame(x, y, width, height).Draw(renderer);
+
+        renderer.Write(x + 2, y + 2, $"ID:          {p.Id}");
+        renderer.Write(x + 2, y + 3, $"SKU:         {p.Sku}");
+        renderer.Write(x + 2, y + 4, $"Producto:    {p.Name}");
+        renderer.Write(x + 2, y + 5, $"Categoría:   {p.Category}");
+        renderer.Write(x + 2, y + 6, $"Cantidad:    {p.Quantity}");
+        renderer.Write(x + 2, y + 7, $"Cant. Mín:   {p.MinQuantity}");
+        renderer.Write(x + 2, y + 8, $"Precio:      {p.Price:C}");
+        renderer.Write(x + 2, y + 10, $"Descripción: {p.Description}");
+
+        string closeMessage = "[Presione cualquier tecla para volver]";
+        renderer.Write(x + (width - closeMessage.Length) / 2, y + height - 2, closeMessage, ConsoleColor.Yellow);
     }
 }

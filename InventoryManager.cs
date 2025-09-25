@@ -38,6 +38,20 @@ public class InventoryManager
         SaveToFile();
     }
 
+    /// <summary>
+    /// Actualiza un producto existente en el inventario.
+    /// </summary>
+    /// <param name="updatedProduct">El producto con los datos modificados.</param>
+    public void UpdateProduct(Product updatedProduct)
+    {
+        var productIndex = _products.FindIndex(p => p.Id == updatedProduct.Id);
+        if (productIndex != -1)
+        {
+            _products[productIndex] = updatedProduct;
+            SaveToFile();
+        }
+    }
+
     public void UpdateProductQuantity(string productId, int change)
     {
         var productIndex = _products.FindIndex(p => p.Id == productId);

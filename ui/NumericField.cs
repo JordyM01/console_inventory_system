@@ -23,31 +23,50 @@ public class NumericField : TuiComponent
     }
 
     /// <summary>
-    /// Dibuja el campo numérico con sus botones y valor.
+    /// Dibuja el campo numérico con sus botones y valor, controlando el color de fondo.
     /// </summary>
     public override void Draw(TuiRenderer renderer)
     {
-        ConsoleColor borderColor = State switch
-        {
-            ValidationState.Valid => ConsoleColor.Green,
-            ValidationState.Invalid => ConsoleColor.Red,
-            _ => HasFocus ? ConsoleColor.DarkYellow : ConsoleColor.Gray
-        };
+        // 1. Determina los colores correctos para el estado actual.
+        ConsoleColor borderColor;
+        ConsoleColor textColor = ConsoleColor.White;
+        // El color de fondo cambia si el campo tiene foco.
+        ConsoleColor backgroundColor = HasFocus ? ConsoleColor.DarkCyan : ConsoleColor.Black;
 
+        switch (State)
+        {
+            case ValidationState.Valid:
+                borderColor = ConsoleColor.Green;
+                break;
+            case ValidationState.Invalid:
+                borderColor = ConsoleColor.Red;
+                break;
+            default: // Pristine
+                borderColor = HasFocus ? ConsoleColor.DarkYellow : ConsoleColor.Gray;
+                break;
+        }
+
+        // 2. Dibuja los elementos estáticos del componente.
         renderer.Write(X, Y + 1, "[+]", borderColor);
-        new Frame(X + 4, Y, Width - 8, 3).Draw(renderer);
+        new Frame(X + 4, Y, Width - 8, 3).Draw(renderer); // El marco para el valor.
         renderer.Write(X + Width - 3, Y + 1, "[-]", borderColor);
 
+        // 3. Formatea el valor numérico a mostrar.
         string displayValue = IsCurrency
-            ? Value.ToString("C", new CultureInfo("es-CR"))
+            ? Value.ToString("C", new CultureInfo("es-CR")) // Formato de moneda para Costa Rica
             : Value.ToString();
 
-        renderer.Write(X + 6, Y + 1, displayValue.PadLeft(Width - 12));
+        int displayWidth = Width - 12; // Ancho del área de texto dentro del marco.
 
-        if (HasFocus)
+        // Se asegura de que el texto no exceda el ancho y lo alinea a la derecha.
+        if (displayValue.Length > displayWidth)
         {
-            Console.SetCursorPosition(X + 6 + displayValue.Length, Y + 1);
+            displayValue = displayValue.Substring(0, displayWidth);
         }
+
+        // 4. Dibuja el valor con el color de fondo correcto.
+        // Este es el paso crucial que soluciona el problema del resaltado persistente.
+        renderer.Write(X + 6, Y + 1, displayValue.PadLeft(displayWidth), textColor, backgroundColor);
     }
 
     /// <summary>
@@ -65,8 +84,8 @@ public class NumericField : TuiComponent
         }
         else if (key.Key == ConsoleKey.Enter)
         {
-            // Al presionar Enter, se activa un InputHandler para edición directa.
-            var inputHandler = new InputHandler(X + 6, Y + 1, Width - 12, Value.ToString(), IsCurrency ? InputType.Decimal : InputType.Integer);
+            // Al presionar Enter, se activa un InputHandler para edición directa del valor.
+            var inputHandler = new InputHandler(X + 6, Y + 1, Width - 12, Value.ToString(CultureInfo.InvariantCulture), IsCurrency ? InputType.Decimal : InputType.Integer);
             var (newValue, result) = inputHandler.ProcessInput();
             if (result != EditResult.Canceled)
             {
@@ -76,3 +95,4 @@ public class NumericField : TuiComponent
         }
     }
 }
+

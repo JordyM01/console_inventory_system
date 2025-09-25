@@ -3,7 +3,7 @@
     "ID": "F4A9B1E8",
     "SKU": "HM-001",
     "Producto": "Martillo de Una 16oz",
-    "cantidad": 85,
+    "cantidad": 84,
     "categoria": "Herramientas Manuales",
     "cant_minima": 15,
     "descripcion": "Martillo de acero forjado con mango de fibra de vid",
@@ -32,7 +32,7 @@
   {
     "ID": "3F8E5C29",
     "SKU": "LL-AJ8",
-    "Producto": "Llave Ajustable 8\"",
+    "Producto": "Llave Ajustable 8\u0022",
     "cantidad": 60,
     "categoria": "Herramientas Manuales",
     "cant_minima": 10,
@@ -42,7 +42,7 @@
   {
     "ID": "A1D9C4B7",
     "SKU": "PL-PVC12",
-    "Producto": "Tubo PVC Sanitario 1/2\" x 3m",
+    "Producto": "Tubo PVC Sanitario 1/2\u0022 x 3m",
     "cantidad": 250,
     "categoria": "Plomeria",
     "cant_minima": 50,
@@ -72,7 +72,7 @@
   {
     "ID": "C5A6B8E2",
     "SKU": "FT-CV1",
-    "Producto": "Clavos de Acero 1\" (Por Libra)",
+    "Producto": "Clavos de Acero 1\u0022 (Por Libra)",
     "cantidad": 150,
     "categoria": "Fijaciones",
     "cant_minima": 30,
@@ -122,7 +122,7 @@
   {
     "ID": "A3B2C1D9",
     "SKU": "PL-CINTF",
-    "Producto": "Cinta de Teflon 1/2\" x 10m",
+    "Producto": "Cinta de Teflon 1/2\u0022 x 10m",
     "cantidad": 400,
     "categoria": "Plomeria",
     "cant_minima": 80,
@@ -132,7 +132,7 @@
   {
     "ID": "F1E8D5C2",
     "SKU": "HM-BROC14",
-    "Producto": "Broca para Concreto 1/4\"",
+    "Producto": "Broca para Concreto 1/4\u0022",
     "cantidad": 110,
     "categoria": "Accesorios de Herramientas",
     "cant_minima": 25,
@@ -142,7 +142,7 @@
   {
     "ID": "9A8B7C6D",
     "SKU": "FT-TRF14",
-    "Producto": "Tornillo autorroscante 1/4\" x 1\" (Caja 100u)",
+    "Producto": "Tornillo autorroscante 1/4\u0022 x 1\u0022 (Caja 100u)",
     "cantidad": 90,
     "categoria": "Fijaciones",
     "cant_minima": 20,
@@ -152,7 +152,7 @@
   {
     "ID": "E5D2C9B8",
     "SKU": "SR-M18",
-    "Producto": "Serrucho de Mano 18\"",
+    "Producto": "Serrucho de Mano 18\u0022",
     "cantidad": 55,
     "categoria": "Herramientas Manuales",
     "cant_minima": 10,
@@ -162,7 +162,7 @@
   {
     "ID": "3C6D9A7B",
     "SKU": "PL-LLT",
-    "Producto": "Llave de Tubo (Stillson) 12\"",
+    "Producto": "Llave de Tubo (Stillson) 12\u0022",
     "cantidad": 35,
     "categoria": "Plomeria",
     "cant_minima": 8,
@@ -172,7 +172,7 @@
   {
     "ID": "B7A4C3D2",
     "SKU": "PN-BRCH2",
-    "Producto": "Brocha de Cerdas Naturales 2\"",
+    "Producto": "Brocha de Cerdas Naturales 2\u0022",
     "cantidad": 130,
     "categoria": "Pinturas",
     "cant_minima": 30,
@@ -202,7 +202,7 @@
   {
     "ID": "C8B5A2D9",
     "SKU": "HM-ALC8",
-    "Producto": "Alicate de Corte Diagonal 8\"",
+    "Producto": "Alicate de Corte Diagonal 8\u0022",
     "cantidad": 70,
     "categoria": "Herramientas Manuales",
     "cant_minima": 15,
@@ -242,7 +242,7 @@
   {
     "ID": "A6B3C9D8",
     "SKU": "FT-ARAN",
-    "Producto": "Arandela Plana de 1/4\" (Caja 100u)",
+    "Producto": "Arandela Plana de 1/4\u0022 (Caja 100u)",
     "cantidad": 250,
     "categoria": "Fijaciones",
     "cant_minima": 50,
@@ -272,7 +272,7 @@
   {
     "ID": "D6E9F3A1",
     "SKU": "JR-MANG",
-    "Producto": "Manguera de Jardin 1/2\" x 15m",
+    "Producto": "Manguera de Jardin 1/2\u0022 x 15m",
     "cantidad": 50,
     "categoria": "Jardineria",
     "cant_minima": 10,
@@ -282,7 +282,7 @@
   {
     "ID": "7A1B2C3D",
     "SKU": "HM-NVL12",
-    "Producto": "Nivel de Burbuja 12\"",
+    "Producto": "Nivel de Burbuja 12\u0022",
     "cantidad": 75,
     "categoria": "Medicion",
     "cant_minima": 15,
@@ -292,7 +292,7 @@
   {
     "ID": "9B3C6D9E",
     "SKU": "AB-DSC4",
-    "Producto": "Disco de Corte para Metal 4.5\"",
+    "Producto": "Disco de Corte para Metal 4.5\u0022",
     "cantidad": 300,
     "categoria": "Accesorios de Herramientas",
     "cant_minima": 60,
@@ -322,7 +322,7 @@
   {
     "ID": "A4B5C6D7",
     "SKU": "PN-ESP2",
-    "Producto": "Espatula Flexible de Acero 2\"",
+    "Producto": "Espatula Flexible de Acero 2\u0022",
     "cantidad": 150,
     "categoria": "Pinturas",
     "cant_minima": 30,
@@ -342,7 +342,7 @@
   {
     "ID": "E9F8A7B6",
     "SKU": "FT-TEXP",
-    "Producto": "Taco de Expansion Plastico 1/4\" (Caja 100u)",
+    "Producto": "Taco de Expansion Plastico 1/4\u0022 (Caja 100u)",
     "cantidad": 200,
     "categoria": "Fijaciones",
     "cant_minima": 40,
@@ -362,7 +362,7 @@
   {
     "ID": "1B3A5C7E",
     "SKU": "HM-PREN",
-    "Producto": "Prensa de Tornillo Tipo C de 4\"",
+    "Producto": "Prensa de Tornillo Tipo C de 4\u0022",
     "cantidad": 40,
     "categoria": "Herramientas Manuales",
     "cant_minima": 8,
@@ -392,7 +392,7 @@
   {
     "ID": "4A8B6C2D",
     "SKU": "CN-VAR38",
-    "Producto": "Varilla de Hierro Corrugado 3/8\" x 6m",
+    "Producto": "Varilla de Hierro Corrugado 3/8\u0022 x 6m",
     "cantidad": 250,
     "categoria": "Construccion",
     "cant_minima": 50,
@@ -422,7 +422,7 @@
   {
     "ID": "A9B8C7D6",
     "SKU": "PN-ROD9",
-    "Producto": "Rodillo de Felpa 9\"",
+    "Producto": "Rodillo de Felpa 9\u0022",
     "cantidad": 120,
     "categoria": "Pinturas",
     "cant_minima": 25,
@@ -492,11 +492,21 @@
   {
     "ID": "F3E4D5C6",
     "SKU": "CN-BLQ",
-    "Producto": "Bloque de Concreto Estandar 6\"",
+    "Producto": "Bloque de Concreto Estandar 6\u0022",
     "cantidad": 300,
     "categoria": "Construccion",
     "cant_minima": 100,
     "descripcion": "Bloque para levantamiento de muros y paredes",
     "precio": 55.5
+  },
+  {
+    "ID": "0EB3697E",
+    "SKU": "EM-25-HJT",
+    "Producto": "Empanada",
+    "cantidad": 0,
+    "categoria": "Comida",
+    "cant_minima": 20,
+    "descripcion": "Dato de prueba",
+    "precio": 50
   }
 ]
